@@ -249,7 +249,6 @@ def decoder_step(x_list, z, encoder_list, decoder_list, params, mu, logsigmasq, 
 class AerocaptureDataModuleCUDA(LightningDataModule):
     def __init__(self, data_dir: str = "./", n_train: int = 5000, n_val: int = 100, n_test: int = 100,
                  train_batch: int = 1, val_batch: int = 1, test_batch: int = 1, num_workers=8, downsampleNum=64):
-                 train_batch: int = 1, val_batch: int = 1, test_batch: int = 1, num_workers=8, downsampleNum=64):
         super().__init__()
         self.data_dir = data_dir
         self.n_train = n_train
