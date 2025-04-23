@@ -5,6 +5,13 @@ import torch
 import matplotlib.patches as mpatches
 from sklearn.decomposition import PCA
 import torch.nn as nn
+import torch.optim as optim
+from torch.distributions import Normal
+from pytorch_lightning import LightningDataModule
+import random
+from tqdm.notebook import tqdm_notebook
+import json
+from torch.utils.data import DataLoader
 
 def seabornSettings():
     sns.set_theme('notebook', style='whitegrid', palette='Paired', rc={"lines.linewidth": 2.5, "font.size": 10, "axes.titlesize": 12, "axes.labelsize": 12,'xtick.labelsize': 9.0, 'ytick.labelsize': 9.0, "font.family": "serif"})
@@ -86,7 +93,7 @@ class Encoder(nn.Module):
             nn.Linear(in_features=hidden_dims[2], out_features=2 * latent_dim),
         )
 
-    def forward(self, x):
+    def forward(self, x, latent_dim):
         """ Returns Normal conditional distribution for q(z | x), with mean and
         log-variance output by a neural network.
 
@@ -121,7 +128,7 @@ class Decoder(nn.Module):
             # nn.ReLU() 11/18 commented out because I realized this was the issue with the velocity dropping to zero
         )
 
-    def forward(self, z):
+    def forward(self, z, decoder_var):
         """ Returns Bernoulli conditional distribution of p(x | z), parametrized
         by logits.
         Args:
@@ -160,7 +167,7 @@ def encoder_step(x_list, encoder_list, decoder_list):
         qz_mean_inv_var = 0
 
         for d, encoder in enumerate(encoder_list):
-            mu_, logsigmasq_ = encoder.forward(x_list[d])
+            mu_, logsigmasq_ = encoder.forward(x_list[d], latent_dim=encoder.latent_dim)
             qz_inv_var += torch.exp(-logsigmasq_)
             qz_mean_inv_var += mu_ * torch.exp(-logsigmasq_)
 
@@ -169,7 +176,7 @@ def encoder_step(x_list, encoder_list, decoder_list):
 
     return mu, logsigmasq
 
-def em_step(z, mu, logsigmasq, params, update_by_batch=False):
+def em_step(z, mu, logsigmasq, params, em_reg, update_by_batch=False):
     # compute gamma_c ~ p(c|z) for each x
     pi_c = params['pi_c']
     mu_c = params['mu_c']  # (K, Z)
@@ -241,7 +248,7 @@ def decoder_step(x_list, z, encoder_list, decoder_list, params, mu, logsigmasq, 
 
 class AerocaptureDataModuleCUDA(LightningDataModule):
     def __init__(self, data_dir: str = "./", n_train: int = 5000, n_val: int = 100, n_test: int = 100,
-                 train_batch: int = 1, val_batch: int = 1, test_batch: int = 1, num_workers=8):
+                 train_batch: int = 1, val_batch: int = 1, test_batch: int = 1, num_workers=8, downsampleNum=64):
         super().__init__()
         self.data_dir = data_dir
         self.n_train = n_train
