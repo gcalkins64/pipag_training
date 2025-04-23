@@ -6,6 +6,7 @@ import matplotlib.patches as mpatches
 from sklearn.decomposition import PCA
 import torch.nn as nn
 from pytorch_lightning import LightningDataModule
+import json
 
 def seabornSettings():
     sns.set_theme('notebook', style='whitegrid', palette='Paired', rc={"lines.linewidth": 2.5, "font.size": 10, "axes.titlesize": 12, "axes.labelsize": 12,'xtick.labelsize': 9.0, 'ytick.labelsize': 9.0, "font.family": "serif"})
