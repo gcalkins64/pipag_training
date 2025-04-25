@@ -159,7 +159,7 @@ def encoder_step(x_list, encoder_list, decoder_list):
     assert(len(encoder_list) == len(decoder_list))
 
     if len(encoder_list) == 1:
-        mu, logsigmasq = encoder_list[0].forward(x_list[0])
+        mu, logsigmasq = encoder_list[0].forward(x_list[0], encoder_list[0].latent_dim)
 
     else:
         # compute distribution of qz as product of experts
