@@ -93,7 +93,7 @@ class Encoder(nn.Module):
             nn.Linear(in_features=hidden_dims[2], out_features=2 * latent_dim),
         )
 
-    def forward(self, x, latent_dim):
+    def forward(self, x):
         """ Returns Normal conditional distribution for q(z | x), with mean and
         log-variance output by a neural network.
 
@@ -104,8 +104,8 @@ class Encoder(nn.Module):
         """
 
         out = self.fc(x)
-        mu = out[:, 0:latent_dim]
-        logsigmasq = out[:, latent_dim:]
+        mu = out[:, 0:self.latent_dim]
+        logsigmasq = out[:, self.latent_dim:]
 
         return mu, logsigmasq
 
@@ -113,9 +113,10 @@ class Encoder(nn.Module):
 class Decoder(nn.Module):
     """ Neural network defining p(x | z) """
 
-    def __init__(self, data_dim, latent_dim, hidden_dims=[8, 16, 32]):
+    def __init__(self, data_dim, latent_dim, decoder_var, hidden_dims=[8, 16, 32]):
         super().__init__()
         self.data_dim = data_dim
+        self.decoder_var = decoder_var
 
         self.fc = nn.Sequential(
             nn.Linear(in_features=latent_dim, out_features=hidden_dims[0]),
@@ -128,7 +129,7 @@ class Decoder(nn.Module):
             # nn.ReLU() 11/18 commented out because I realized this was the issue with the velocity dropping to zero
         )
 
-    def forward(self, z, decoder_var):
+    def forward(self, z):
         """ Returns Bernoulli conditional distribution of p(x | z), parametrized
         by logits.
         Args:
@@ -139,7 +140,7 @@ class Decoder(nn.Module):
 
         out = self.fc(z)
         mu = out
-        logsigmasq = torch.ones_like(mu) * np.log(decoder_var)
+        logsigmasq = torch.ones_like(mu) * np.log(self.decoder_var)
 
         return mu, logsigmasq
     
@@ -159,7 +160,7 @@ def encoder_step(x_list, encoder_list, decoder_list):
     assert(len(encoder_list) == len(decoder_list))
 
     if len(encoder_list) == 1:
-        mu, logsigmasq = encoder_list[0].forward(x_list[0], encoder_list[0].latent_dim)
+        mu, logsigmasq = encoder_list[0].forward(x_list[0])
 
     else:
         # compute distribution of qz as product of experts
@@ -167,7 +168,7 @@ def encoder_step(x_list, encoder_list, decoder_list):
         qz_mean_inv_var = 0
 
         for d, encoder in enumerate(encoder_list):
-            mu_, logsigmasq_ = encoder.forward(x_list[d], latent_dim=encoder.latent_dim)
+            mu_, logsigmasq_ = encoder.forward(x_list[d])
             qz_inv_var += torch.exp(-logsigmasq_)
             qz_mean_inv_var += mu_ * torch.exp(-logsigmasq_)
 
