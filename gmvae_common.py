@@ -289,6 +289,7 @@ class AerocaptureDataModuleCUDA(LightningDataModule):
         # Randomize samples
         total_samples = len(data_dict)
         sample_list = random.sample(range(total_samples), self.n_samples)
+        print(sample_list)
 
         # ASSUMES DATA IS ALREADY DOWNSAMPLED AND SCALED
         for i in tqdm_notebook(range(self.n_samples)):
