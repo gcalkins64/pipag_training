@@ -268,7 +268,7 @@ class AerocaptureDataModuleCUDA(LightningDataModule):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(self.device)
         self.downsampleNum = downsampleNum
-        self.generator = torch.Generator().manual_seed(SEED)
+        self.generator = torch.Generator(device="cuda").manual_seed(SEED)
 
     def setup(self, stage=None):
 
