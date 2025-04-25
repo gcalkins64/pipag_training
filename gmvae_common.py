@@ -247,6 +247,11 @@ def decoder_step(x_list, z, encoder_list, decoder_list, params, mu, logsigmasq, 
 
     return elbo, sse, elbo_terms
 
+def seed_worker(worker_id):
+    worker_seed = SEED + worker_id
+    np.random.seed(worker_seed)
+    random.seed(worker_seed)
+
 class AerocaptureDataModuleCUDA(LightningDataModule):
     def __init__(self, data_dir: str = "./", n_train: int = 5000, n_val: int = 100, n_test: int = 100,
                  train_batch: int = 1, val_batch: int = 1, test_batch: int = 1, num_workers=8, downsampleNum=64):
@@ -317,10 +322,22 @@ class AerocaptureDataModuleCUDA(LightningDataModule):
             self.test_stage_dataset = self.test_dataset
 
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=self.train_batch, shuffle=False, num_workers=self.num_workers)
+        return DataLoader(self.train_dataset, batch_size=self.train_batch, 
+            shuffle=True,
+            num_workers=self.num_workers,
+            worker_init_fn=seed_worker,
+            generator=self.generator)
 
     def val_dataloader(self):
-        return DataLoader(self.val_dataset, batch_size=self.val_batch, shuffle=False, num_workers=self.num_workers)
+        return DataLoader(self.val_dataset, batch_size=self.val_batch, 
+            shuffle=True,
+            num_workers=self.num_workers,
+            worker_init_fn=seed_worker,
+            generator=self.generator)
 
     def test_dataloader(self):
-        return DataLoader(self.test_dataset, batch_size=self.test_batch, shuffle=False, num_workers=self.num_workers)
+        return DataLoader(self.test_dataset, batch_size=self.test_batch, 
+            shuffle=True,
+            num_workers=self.num_workers,
+            worker_init_fn=seed_worker,
+            generator=self.generator)
