@@ -254,7 +254,7 @@ def seed_worker(worker_id):
 
 class AerocaptureDataModuleCUDA(LightningDataModule):
     def __init__(self, data_dir: str = "./", n_train: int = 5000, n_val: int = 100, n_test: int = 100,
-                 train_batch: int = 1, val_batch: int = 1, test_batch: int = 1, num_workers=8, downsampleNum=64):
+                 train_batch: int = 1, val_batch: int = 1, test_batch: int = 1, num_workers=8, downsampleNum=64, SEED=42):
         super().__init__()
         self.data_dir = data_dir
         self.n_train = n_train
@@ -268,6 +268,7 @@ class AerocaptureDataModuleCUDA(LightningDataModule):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(self.device)
         self.downsampleNum = downsampleNum
+        self.generator = torch.Generator().manual_seed(SEED)
 
     def setup(self, stage=None):
 
