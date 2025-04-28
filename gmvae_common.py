@@ -242,7 +242,7 @@ def decoder_step(x_list, z, encoder_list, decoder_list, params, mu, logsigmasq, 
     return elbo, sse, elbo_terms
 
 def seed_worker(worker_id):
-    worker_seed = SEED + worker_id
+    worker_seed = torch.initial_seed() % 2 ** 32
     np.random.seed(worker_seed)
     random.seed(worker_seed)
 
@@ -260,7 +260,6 @@ class AerocaptureDataModuleCUDA(LightningDataModule):
         self.test_batch = test_batch
         self.num_workers = num_workers
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        print(self.device)
         self.downsampleNum = downsampleNum
         self.generator = torch.Generator(device="cuda").manual_seed(SEED)
 
