@@ -80,17 +80,15 @@ def plot_latent_space_with_clusters(samples, labels, num_clusters, cluster_means
 class Encoder(nn.Module):
     """ Neural network defining q(z | x). """
 
-    def __init__(self, data_dim, latent_dim, hidden_dims=[32, 16, 8]):
+    def __init__(self, data_dim, latent_dim, hidden_dims=[32, 16]):
         super().__init__()
         self.latent_dim = latent_dim
         self.fc = nn.Sequential(
             nn.Linear(in_features=data_dim, out_features=hidden_dims[0]),
-            nn.Tanh(),
+            nn.GELU(),
             nn.Linear(in_features=hidden_dims[0], out_features=hidden_dims[1]),
-            nn.Tanh(),
-            nn.Linear(in_features=hidden_dims[1], out_features=hidden_dims[2]),
-            nn.Tanh(),
-            nn.Linear(in_features=hidden_dims[2], out_features=2 * latent_dim),
+            nn.GELU(),
+            nn.Linear(in_features=hidden_dims[1], out_features=2 * latent_dim),
         )
 
     def forward(self, x):
@@ -113,20 +111,16 @@ class Encoder(nn.Module):
 class Decoder(nn.Module):
     """ Neural network defining p(x | z) """
 
-    def __init__(self, data_dim, latent_dim, decoder_var, hidden_dims=[8, 16, 32]):
+    def __init__(self, data_dim, latent_dim, decoder_var, hidden_dims=[16, 32]):
         super().__init__()
         self.data_dim = data_dim
         self.decoder_var = decoder_var
 
         self.fc = nn.Sequential(
             nn.Linear(in_features=latent_dim, out_features=hidden_dims[0]),
-            nn.Tanh(),
             nn.Linear(in_features=hidden_dims[0], out_features=hidden_dims[1]),
-            nn.Tanh(),
-            nn.Linear(in_features=hidden_dims[1], out_features=hidden_dims[2]),
-            nn.Tanh(),
-            nn.Linear(in_features=hidden_dims[2], out_features=data_dim),
-            # nn.ReLU() 11/18 commented out because I realized this was the issue with the velocity dropping to zero
+            nn.GELU(),
+            nn.Linear(in_features=hidden_dims[1], out_features=data_dim),
         )
 
     def forward(self, z):
