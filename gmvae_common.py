@@ -262,8 +262,12 @@ class AerocaptureDataModuleCUDA(LightningDataModule):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.downsampleNum = downsampleNum
         self.generator = torch.Generator(device="cuda").manual_seed(SEED)
+        self.SEED = SEED
 
     def setup(self, stage=None):
+        random.seed(self.SEED)
+        np.random.seed(self.SEED)
+        torch.manual_seed(self.SEED)
 
         f = open(self.data_dir)
         print('Loading File...')
