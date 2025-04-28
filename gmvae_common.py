@@ -39,7 +39,7 @@ def plot_latent_space_with_clusters(samples, labels, num_clusters, cluster_means
         cluster_angles_ = np.arctan(u[:, 0, 1] / u[:, 0, 0])
 
     fig, ax = plt.subplots(figsize=(6.5,4))
-    markers = ['o', '^', "s", "d"]
+    markers = ['o', '^', "s", "d", "+", "*", "v"]
     assert(len(markers) >= len(text_labels))
 
     for i in range(len(text_labels)):
@@ -93,7 +93,7 @@ class Encoder(nn.Module):
             nn.Linear(in_features=hidden_dims[2], out_features=2 * latent_dim),
         )
 
-    def forward(self, x, latent_dim):
+    def forward(self, x):
         """ Returns Normal conditional distribution for q(z | x), with mean and
         log-variance output by a neural network.
 
@@ -104,8 +104,8 @@ class Encoder(nn.Module):
         """
 
         out = self.fc(x)
-        mu = out[:, 0:latent_dim]
-        logsigmasq = out[:, latent_dim:]
+        mu = out[:, 0:self.latent_dim]
+        logsigmasq = out[:, self.latent_dim:]
 
         return mu, logsigmasq
 
@@ -113,9 +113,10 @@ class Encoder(nn.Module):
 class Decoder(nn.Module):
     """ Neural network defining p(x | z) """
 
-    def __init__(self, data_dim, latent_dim, hidden_dims=[8, 16, 32]):
+    def __init__(self, data_dim, latent_dim, decoder_var, hidden_dims=[8, 16, 32]):
         super().__init__()
         self.data_dim = data_dim
+        self.decoder_var = decoder_var
 
         self.fc = nn.Sequential(
             nn.Linear(in_features=latent_dim, out_features=hidden_dims[0]),
@@ -128,7 +129,7 @@ class Decoder(nn.Module):
             # nn.ReLU() 11/18 commented out because I realized this was the issue with the velocity dropping to zero
         )
 
-    def forward(self, z, decoder_var):
+    def forward(self, z):
         """ Returns Bernoulli conditional distribution of p(x | z), parametrized
         by logits.
         Args:
@@ -139,7 +140,7 @@ class Decoder(nn.Module):
 
         out = self.fc(z)
         mu = out
-        logsigmasq = torch.ones_like(mu) * np.log(decoder_var)
+        logsigmasq = torch.ones_like(mu) * np.log(self.decoder_var)
 
         return mu, logsigmasq
     
@@ -167,7 +168,7 @@ def encoder_step(x_list, encoder_list, decoder_list):
         qz_mean_inv_var = 0
 
         for d, encoder in enumerate(encoder_list):
-            mu_, logsigmasq_ = encoder.forward(x_list[d], latent_dim=encoder.latent_dim)
+            mu_, logsigmasq_ = encoder.forward(x_list[d])
             qz_inv_var += torch.exp(-logsigmasq_)
             qz_mean_inv_var += mu_ * torch.exp(-logsigmasq_)
 
@@ -246,9 +247,14 @@ def decoder_step(x_list, z, encoder_list, decoder_list, params, mu, logsigmasq, 
 
     return elbo, sse, elbo_terms
 
+def seed_worker(worker_id):
+    worker_seed = SEED + worker_id
+    np.random.seed(worker_seed)
+    random.seed(worker_seed)
+
 class AerocaptureDataModuleCUDA(LightningDataModule):
     def __init__(self, data_dir: str = "./", n_train: int = 5000, n_val: int = 100, n_test: int = 100,
-                 train_batch: int = 1, val_batch: int = 1, test_batch: int = 1, num_workers=8, downsampleNum=64):
+                 train_batch: int = 1, val_batch: int = 1, test_batch: int = 1, num_workers=8, downsampleNum=64, SEED=42):
         super().__init__()
         self.data_dir = data_dir
         self.n_train = n_train
@@ -262,6 +268,7 @@ class AerocaptureDataModuleCUDA(LightningDataModule):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(self.device)
         self.downsampleNum = downsampleNum
+        self.generator = torch.Generator(device="cuda").manual_seed(SEED)
 
     def setup(self, stage=None):
 
@@ -283,6 +290,7 @@ class AerocaptureDataModuleCUDA(LightningDataModule):
         # Randomize samples
         total_samples = len(data_dict)
         sample_list = random.sample(range(total_samples), self.n_samples)
+        print(sample_list)
 
         # ASSUMES DATA IS ALREADY DOWNSAMPLED AND SCALED
         for i in tqdm_notebook(range(self.n_samples)):
@@ -316,10 +324,22 @@ class AerocaptureDataModuleCUDA(LightningDataModule):
             self.test_stage_dataset = self.test_dataset
 
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=self.train_batch, shuffle=False, num_workers=self.num_workers)
+        return DataLoader(self.train_dataset, batch_size=self.train_batch, 
+            shuffle=True,
+            num_workers=self.num_workers,
+            worker_init_fn=seed_worker,
+            generator=self.generator)
 
     def val_dataloader(self):
-        return DataLoader(self.val_dataset, batch_size=self.val_batch, shuffle=False, num_workers=self.num_workers)
+        return DataLoader(self.val_dataset, batch_size=self.val_batch, 
+            shuffle=True,
+            num_workers=self.num_workers,
+            worker_init_fn=seed_worker,
+            generator=self.generator)
 
     def test_dataloader(self):
-        return DataLoader(self.test_dataset, batch_size=self.test_batch, shuffle=False, num_workers=self.num_workers)
+        return DataLoader(self.test_dataset, batch_size=self.test_batch, 
+            shuffle=True,
+            num_workers=self.num_workers,
+            worker_init_fn=seed_worker,
+            generator=self.generator)
