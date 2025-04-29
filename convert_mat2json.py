@@ -12,11 +12,11 @@ def main():
     Nruns = 5000
 
     # Near Escape
-    # removeFlags = [2]  # 0 capture, 1 escape, 2 crash
-    # tag = 'UOP_inc_lit_disps'
-    # dataPath = '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250425173914_UOP_inc_lit_disps_R0_C5000_Puranus_O1_Fenergy_FFTrue_DP2'
-    # tFind = 1001  # Final time step index
-    # norm = 142248870.22982892
+    removeFlags = [2]  # 0 capture, 1 escape, 2 crash
+    tag = 'UOP_inc_lit_disps'
+    dataPath = '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250425173914_UOP_inc_lit_disps_R0_C5000_Puranus_O1_Fenergy_FFTrue_DP2'
+    tFind = 1001  # Final time step index
+    norm = 142248870.22982892
 
     # Near Crash
     # removeFlags = [1]  # 0 capture, 1 escape, 2 crash
@@ -26,11 +26,11 @@ def main():
     # norm = 142145066.67666337
 
     # Agressive Near Crash
-    removeFlags = [1]  # 0 capture, 1 escape, 2 crash
-    tag = 'UOP_near_crash_steeper'
-    dataPath = '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250426100446_UOP_near_crash_steeper_R0_C5000_Puranus_O2_Fenergy_FFTrue_DP2'
-    tFind = 867  # Final time step index
-    norm = 142141053.1824186
+    # removeFlags = [1]  # 0 capture, 1 escape, 2 crash
+    # tag = 'UOP_near_crash_steeper'
+    # dataPath = '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250426100446_UOP_near_crash_steeper_R0_C5000_Puranus_O2_Fenergy_FFTrue_DP2'
+    # tFind = 867  # Final time step index
+    # norm = 142141053.1824186
 
     flagDownsample = True
     flagEnergy = True  # if true, use energy, if false, use velocity
@@ -67,6 +67,7 @@ def main():
     else:
         idx = np.linspace(0, tFind - 1, tFind, dtype=int)
     goodInds = []
+    save_ind = 0
     for run in range(Nruns):
         data = datas[run]
         vel = data['x'][3, :tFind]
@@ -95,8 +96,9 @@ def main():
         else:
             normed_data = data
 
-        data_dict[f'sample{run}'] = {dataName: normed_data[idx].tolist(), 'label': label}
+        data_dict[f'sample{save_ind}'] = {dataName: normed_data[idx].tolist(), 'label': label}
         data_mat[run, :] = normed_data[idx]
+        save_ind += 1
 
     suffix = f'{dataName}_{"scaled_" if flagScale else ""}{"downsampled_" if flagDownsample else ""}'
     with open(f'{savePath}/{tag}_{Nruns}_data_{suffix}.json', 'w') as f:
@@ -111,8 +113,8 @@ def main():
     # Plot the data
     sns.set_theme('notebook', style='whitegrid', palette='Paired', rc={"lines.linewidth": 2.5, "font.size": 10, "axes.titlesize": 12, "axes.labelsize": 12,'xtick.labelsize': 9.0, 'ytick.labelsize': 9.0, "font.family": "serif"})
     fig, ax = plt.subplots()
-    for run in goodInds:
-        label = data_dict[f'sample{run}']['label']
+    for ii, run in enumerate(goodInds):
+        label = data_dict[f'sample{ii}']['label']
         color = f"C{label}"
         ax.plot(data_mat[run, :], color=color)
     line1 = plt.Line2D([0], [0], color='C0', label='Capture')
@@ -128,12 +130,12 @@ def main():
     # Get maximum initial energy
     max_energy = 0
     mean_energy_0 = 0
-    for run in goodInds:
+    for run in range(Nruns):
         energy = data_mat[run, 0]
         if energy > max_energy:
             max_energy = energy
         mean_energy_0 += energy
-    mean_energy_0 /= len(goodInds)
+    mean_energy_0 /= Nruns
     print(f'Maximum initial energy: {max_energy}')
     print(f'Mean initial energy: {mean_energy_0}')
 
