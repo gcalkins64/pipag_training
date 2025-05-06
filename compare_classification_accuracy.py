@@ -9,6 +9,9 @@ sys.path.append("/Users/gracecalkins/Local_Documents/local_code/pipag/pipag_base
 import torch
 from gmvae_encoder import *  # type: ignore
 from plotting import plot_latent_space_with_clusters, seabornSettings  # type: ignore
+import glob
+import re
+import joblib  # safer and more compact than pickle for sklearn models
 warnings.simplefilter("ignore", FutureWarning)
 
 def main():
@@ -19,19 +22,19 @@ def main():
 
     # Structure - run once for each input data, but can run multiple hyperparameters within each input file
     # INPUTS
-    inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/UOP_inc_lit_disps_5000_data_energy_scaled_downsampled_.json"
-    modes = [0,1]
-    folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250429_155508_5_4'
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/UOP_inc_lit_disps_5000_data_energy_scaled_downsampled_.json"
+    # modes = [0,1]
+    # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250429_155508_5_4'
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250429_183447_5_5'
 
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag/data/UOP_near_crash_5000_data_energy_scaled_downsampled_.json"
     # modes = [0,2]
-    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/UOP_near_crash_steeper_5000_data_energy_scaled_downsampled_.json"
-    # modes = [0,2]
-    # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250429_155516_5_4'
+    inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/UOP_near_crash_steeper_5000_data_energy_scaled_downsampled_.json"
+    modes = [0,2]
+    folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250429_155516_5_4'
 
-    LDs = [5]  #[4,5,6]
-    NCs = [4]  #[2,3,4,5,6]
+    LDs = [5] #[4,5,6]
+    NCs = [4] #[2,3,4,5,6]
 
     # load in json
     with open(inputDataPath, 'r') as f:
@@ -73,9 +76,16 @@ def main():
             # Load in encoder
             print(f"LD: {LD}, NC: {NC}")
             if len(LDs) > 1:
-                # Get the folder in basePath that ends with LD{LD}_NC{NC}
-                folder_path = os.path.join(basePath,
-                                       [folder for folder in os.listdir(basePath) if folder.endswith(f"{LD}_{NC}")][0])
+                pattern = rf"^gmvae_em_aerocapture_energy_(20250429|20250430)_\d{{6}}_{LD}_{NC}$"
+                folder_path = [
+                    f for f in os.listdir(basePath)
+                    if os.path.isdir(os.path.join(basePath, f)) and re.fullmatch(pattern, f)
+                ]
+                if folder_path:
+                    print(f"LD {LD}, NC {NC} → {folder_path}")
+                    folder_path = os.path.join(basePath, folder_path[0])
+                else:
+                    print(f"LD {LD}, NC {NC} → no match")
 
 
             # Get the file string after "encoder"
@@ -131,6 +141,7 @@ def main():
             encoded_samples = np.squeeze(np.array([t.detach().numpy() for t in encoded_samples]))
             names = ['Capture', 'Escape'] if 1 in modes else ['Capture', 'Impact']
             plot_latent_space_with_clusters(encoded_samples, labels, NC, params['mu_c'], params['logsigmasq_c'], os.path.join(folder_path, f'predicted_latent_clusters_LD{LD}_NC{NC}'), names, ['C1', 'C3'], cluster_labels, cluster_colors, dpi=300, titleTag=f" LD: {LD}, NC: {NC}")
+            plt.show()
 
             # compute true cluster probability by summing probability for all mixands in that cluster
             pred_capture_prob, pred_failure_prob = 0, 0
@@ -226,24 +237,24 @@ def main():
 
         # TODO change these to percent error
         # Print capture probability error in latex table
-        print("Capture Probability Error")
+        print("Capture Probability Percent Error")
         print("\\begin{tabular}{l" + "c" * len(NCs) + "}")
         print("\\toprule")
         print("Latent Dim & " + " & ".join([str(NC) for NC in NCs]) + " \\\\")
         print("\\midrule")
         for ll, LD in enumerate(LDs):
-            print(f"{LD} & " + " & ".join([f"{pred_capture_probs[ll, nn] - capture_prob:.4f}" for nn in range(len(NCs))]) + " \\\\")
+            print(f"{LD} & " + " & ".join([f"{abs(pred_capture_probs[ll, nn] - capture_prob)/capture_prob*100:.4f}" for nn in range(len(NCs))]) + " \\\\")
         print("\\bottomrule")
         print("\\end{tabular}")
 
         # Print escape probability error in latex table
-        print("Escape Probability Error")
+        print("Escape Probability Percent Error")
         print("\\begin{tabular}{l" + "c" * len(NCs) + "}")
         print("\\toprule")
         print("Latent Dim & " + " & ".join([str(NC) for NC in NCs]) + " \\\\")
         print("\\midrule")
         for ll, LD in enumerate(LDs):
-            print(f"{LD} & " + " & ".join([f"{pred_failure_probs[ll, nn] - (1 - capture_prob):.4f}" for nn in range(len(NCs))]) + " \\\\")
+            print(f"{LD} & " + " & ".join([f"{abs(pred_failure_probs[ll, nn] - escape_prob)/escape_prob*100:.4f}" for nn in range(len(NCs))]) + " \\\\")
         print("\\bottomrule")
         print("\\end{tabular}")
 
