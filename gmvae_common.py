@@ -264,7 +264,7 @@ class AerocaptureDataModuleCUDA(LightningDataModule):
         self.generator = torch.Generator(device="cuda").manual_seed(SEED)
         self.SEED = SEED
 
-    def setup(self, stage=None):
+    def setup(self, stage=None, sample_list=None):
         random.seed(self.SEED)
         np.random.seed(self.SEED)
         torch.manual_seed(self.SEED)
@@ -286,8 +286,9 @@ class AerocaptureDataModuleCUDA(LightningDataModule):
 
         # Randomize samples
         total_samples = len(data_dict)
-        sample_list = random.sample(range(total_samples), self.n_samples)
-        print(sample_list)
+        if sample_list is not None:
+            sample_list = random.sample(range(total_samples), self.n_samples)
+        print('Sample List:', sample_list)
 
         # ASSUMES DATA IS ALREADY DOWNSAMPLED AND SCALED
         for i in tqdm_notebook(range(self.n_samples)):

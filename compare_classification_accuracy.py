@@ -32,6 +32,7 @@ def main():
     inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/UOP_near_crash_steeper_5000_data_energy_scaled_downsampled_.json"
     modes = [0,2]
     folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250429_155516_5_4'
+    # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250506_190907_5_5'
 
     LDs = [5] #[4,5,6]
     NCs = [4] #[2,3,4,5,6]
