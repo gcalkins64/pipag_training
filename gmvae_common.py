@@ -286,7 +286,8 @@ class AerocaptureDataModuleCUDA(LightningDataModule):
 
         # Randomize samples
         total_samples = len(data_dict)
-        if sample_list is not None:
+        if sample_list is None:
+            print('Generating sample_list')
             sample_list = random.sample(range(total_samples), self.n_samples)
         print('Sample List:', sample_list)
 
