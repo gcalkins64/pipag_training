@@ -26,7 +26,7 @@ def main():
     savePath = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data'
     R_eq = 25559e3 # m, Uranus
     mu = 5.7940*10**15,  # m^3/s^2
-    Nruns = 5000
+    Nruns = 2000
 
     # Near Escape
     # removeFlags = [2]  # 0 capture, 1 escape, 2 crash
@@ -36,12 +36,12 @@ def main():
     # norm = 142248870.22982892
 
     # Near Crash
-    removeFlags = []  # 0 capture, 1 escape, 2 crash
-    tag = 'UOP_near_crash_extend'
-    dataPath = '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250425235334_UOP_near_crash_R0_C5000_Puranus_O2_Fenergy_FFTrue_DP2'
-    tFind = 2001  # Final time step index
-    cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
-    norm = 142145066.67666337
+    # removeFlags = []  # 0 capture, 1 escape, 2 crash
+    # tag = 'UOP_near_crash_extend'
+    # dataPath = '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250425235334_UOP_near_crash_R0_C5000_Puranus_O2_Fenergy_FFTrue_DP2'
+    # tFind = 2001  # Final time step index
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # norm = 142145066.67666337
 
     # Agressive Near Crash
     # removeFlags = [1]  # 0 capture, 1 escape, 2 crash
@@ -49,6 +49,14 @@ def main():
     # dataPath = '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250426100446_UOP_near_crash_steeper_R0_C5000_Puranus_O2_Fenergy_FFTrue_DP2'
     # tFind = 867  # Final time step index
     # norm = 142141053.1824186
+
+    # All 3 modes Uniform
+    removeFlags = []  # 0 capture, 1 escape, 2 crash
+    tag = 'UOP_uniform_pGRAM'
+    dataPath = '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250512120942_UOP_uniform_pGRAM_R42_C5000_Puranus_O1_Fenergy_FFTrue_DP2_GMVAEFalse'
+    tFind = 1001  # Final time step index
+    cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    norm = 143005107.62401044
 
     flagDownsample = True
     flagEnergy = True  # if true, use energy, if false, use velocity
@@ -188,8 +196,8 @@ def main():
         color = f"C{label}"
         ax.plot(data_mat[run, :], color=color)
     line1 = plt.Line2D([0], [0], color='C0', label='Capture')
-    line2 = plt.Line2D([0], [0], color='C2', label='Escape')
-    line3 = plt.Line2D([0], [0], color='C3', label='Crash')
+    line2 = plt.Line2D([0], [0], color='C1', label='Escape')
+    line3 = plt.Line2D([0], [0], color='C2', label='Crash')
     ax.legend(handles=[line1, line2, line3])
     plt.ylabel(f'{r"Velocity (m/s)" if not flagEnergy else r"Energy (m$^2$/s$^2$)"}')
     plt.xlabel('Time step')
