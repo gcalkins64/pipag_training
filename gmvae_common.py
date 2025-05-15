@@ -139,7 +139,7 @@ class Decoder(nn.Module):
         # )
 
         modules = []
-        modules.append(nn.Linear(latent_dim, hidden_dims[-1]))
+        modules.append(nn.Linear(latent_dim, hidden_dims[0]))
         for i in range(len(hidden_dims) - 1):
             modules.append(
                 nn.Sequential(
