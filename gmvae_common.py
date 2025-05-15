@@ -83,13 +83,28 @@ class Encoder(nn.Module):
     def __init__(self, data_dim, latent_dim, hidden_dims=[32, 16]):
         super().__init__()
         self.latent_dim = latent_dim
-        self.fc = nn.Sequential(
-            nn.Linear(in_features=data_dim, out_features=hidden_dims[0]),
-            nn.GELU(),
-            nn.Linear(in_features=hidden_dims[0], out_features=hidden_dims[1]),
-            nn.GELU(),
-            nn.Linear(in_features=hidden_dims[1], out_features=2 * latent_dim),
-        )
+        # self.fc = nn.Sequential(
+        #     nn.Linear(in_features=data_dim, out_features=hidden_dims[0]),
+        #     nn.GELU(),
+        #     nn.Linear(in_features=hidden_dims[0], out_features=hidden_dims[1]),
+        #     nn.GELU(),
+        #     nn.Linear(in_features=hidden_dims[1], out_features=2 * latent_dim),
+        # )
+
+        modules = []
+        in_channels = data_dim
+        # Build Encoder
+        for h_dim in hidden_dims:
+            modules.append(
+                nn.Sequential(
+                    nn.Linear(in_channels, h_dim),
+                    nn.GELU())
+            )
+            in_channels = h_dim
+        modules.append(nn.Linear(in_channels, 2 * latent_dim))
+
+        self.fc = nn.Sequential(*modules)
+
 
     def forward(self, x):
         """ Returns Normal conditional distribution for q(z | x), with mean and
@@ -116,12 +131,24 @@ class Decoder(nn.Module):
         self.data_dim = data_dim
         self.decoder_var = decoder_var
 
-        self.fc = nn.Sequential(
-            nn.Linear(in_features=latent_dim, out_features=hidden_dims[0]),
-            nn.Linear(in_features=hidden_dims[0], out_features=hidden_dims[1]),
-            nn.GELU(),
-            nn.Linear(in_features=hidden_dims[1], out_features=data_dim),
-        )
+        # self.fc = nn.Sequential(
+        #     nn.Linear(in_features=latent_dim, out_features=hidden_dims[0]),
+        #     nn.Linear(in_features=hidden_dims[0], out_features=hidden_dims[1]),
+        #     nn.GELU(),
+        #     nn.Linear(in_features=hidden_dims[1], out_features=data_dim),
+        # )
+
+        modules = []
+        modules.append(latent_dim, hidden_dims[0])
+        for i in range(len(hidden_dims) - 1):
+            modules.append(
+                nn.Sequential(
+                    nn.Linear(hidden_dims[i], hidden_dims[i + 1]),
+                    nn.GELU())
+                # nn.ReLU())
+            )
+        self.fc = nn.Sequential(*modules)
+
 
     def forward(self, z):
         """ Returns Bernoulli conditional distribution of p(x | z), parametrized
