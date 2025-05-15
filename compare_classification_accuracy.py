@@ -21,21 +21,13 @@ def main():
     basePath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/"
 
     # Structure - run once for each input data, but can run multiple hyperparameters within each input file
-    # INPUTS
-    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/UOP_inc_lit_disps_5000_data_energy_scaled_downsampled_.json"
-    # modes = [0,1]
-    # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250429_155508_5_4'
-    # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250429_183447_5_5'
-
-    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag/data/UOP_near_crash_5000_data_energy_scaled_downsampled_.json"
-    # modes = [0,2]
-    inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/UOP_near_crash_steeper_5000_data_energy_scaled_downsampled_.json"
-    modes = [0,2]
-    folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250429_155516_5_4'
-    # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250506_190907_5_5'
+    inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/UOP_uniform_pGRAM_2000_data_energy_scaled_downsampled_.json"
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/UOP_near_crash_steeper_near_escape_COMBINED_5000_data_energy_scaled_downsampled_.json"
+    # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250514_182106_5_5'  # Combined data
+    folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250512_200948_5_5'  # Uniform data
 
     LDs = [5] #[4,5,6]
-    NCs = [4] #[2,3,4,5,6]
+    NCs = [5] #[2,3,4,5,6]
 
     # load in json
     with open(inputDataPath, 'r') as f:
@@ -70,7 +62,12 @@ def main():
     # LABEL 1 = ESCAPE
     # LABEL 2 = IMPACT
     pred_capture_probs = np.zeros((len(LDs), len(NCs)))
-    pred_failure_probs = np.zeros((len(LDs), len(NCs)))
+    pred_escape_probs = np.zeros((len(LDs), len(NCs)))
+    pred_crash_probs = np.zeros((len(LDs), len(NCs)))
+
+    false_capture_percent = np.zeros((len(LDs), len(NCs)))
+    false_escape_percent = np.zeros((len(LDs), len(NCs)))
+    false_crash_percent = np.zeros((len(LDs), len(NCs)))
     # Loop over all LDs and NCs
     for ll, LD in enumerate(LDs):
         for nn, NC in enumerate(NCs):
@@ -99,7 +96,7 @@ def main():
             # run all samples through encoder
             assigned_cluster_inds = []
             for ii in range(NC):  # for each GMVAE cluster
-                mahalanobis_distances = [[], []]  # Two lists - one for true cluster 0 (escape/crash) and one for true cluster 1 (capture)
+                mahalanobis_distances = [[], [], []]  # Two lists - one for each mode
                 encoded_samples = []
                 for kk in range(Nsamples): # Loop over all samples
                     # Compute mahalanobis distance from sample to cluster mean / variance
@@ -108,12 +105,12 @@ def main():
                     mu_c = params['mu_c'][ii].clone().detach()
                     logsigmasq_c = params['logsigmasq_c'][ii].clone().detach()
                     mahalanobis_distance = torch.sqrt((z - mu_c) @ torch.inverse(torch.diag(torch.exp(logsigmasq_c))) @ (z - mu_c).T)
-                    assigned_label = labels[kk] if labels[kk] != 2 else 1
+                    assigned_label = labels[kk]
                     mahalanobis_distances[assigned_label].append(mahalanobis_distance.detach().numpy())
                 # Get mean mahanalobis distance for this mixand to each true cluster
-                mean_mahalanobis_distances = [np.mean(mahalanobis_distances[0]), np.mean(mahalanobis_distances[1])]
-                print(f"Mean Mahalanobis distance for mixand {ii} to failure cluster: {mean_mahalanobis_distances[1]}")
-                print(f"Mean Mahalanobis distance for mixand {ii} to capture cluster: {mean_mahalanobis_distances[0]}")
+                mean_mahalanobis_distances = [np.mean(mahalanobis_distances[0]), np.mean(mahalanobis_distances[1]), np.mean(mahalanobis_distances[2])]
+                for qq in range(3):
+                    print(f"Mean Mahalanobis distance for mixand {ii} to true cluster {qq}: {mean_mahalanobis_distances[qq]}")
                 # Assign mixand to cluster with smallest mean mahalanobis distance
                 assigned_cluster = np.argmin(mean_mahalanobis_distances)
                 assigned_cluster_inds.append(assigned_cluster)
@@ -123,36 +120,38 @@ def main():
 
             # Plot latent space with samples and color all mixands by their assigned cluster to check
             cluster_labels, cluster_colors = [], []
-            bad_num, good_num = 0, 0
+            bad_num, bad_num1, good_num = 0, 0, 0
             for aa, assigned_ind in enumerate(assigned_cluster_inds):
                 if assigned_ind == 1:
-                    if 2 in modes:
-                        cluster_labels.append(f'Impact {bad_num}')
-                    else:
-                        cluster_labels.append(f'Escape {bad_num}')
+                    cluster_labels.append(f'Escape {bad_num}')
                     cluster_colors.append('C2')
                     bad_num += 1
-                else:  # assigned_ind == 0
+                elif assigned_ind == 2:
+                    cluster_labels.append(f'Impact {bad_num1}')
+                    cluster_colors.append('C4')
+                    bad_num1 += 1
+                else:  # capture
                     cluster_labels.append(f'Capture {good_num}')
                     cluster_colors.append('C0')
                     good_num += 1
 
-            if 2 in modes:
-                labels = np.where(labels == 2, 1, labels)  # Change all impact labels to 1 for plottinh
             encoded_samples = np.squeeze(np.array([t.detach().numpy() for t in encoded_samples]))
-            names = ['Capture', 'Escape'] if 1 in modes else ['Capture', 'Impact']
-            plot_latent_space_with_clusters(encoded_samples, labels, NC, params['mu_c'], params['logsigmasq_c'], os.path.join(folder_path, f'predicted_latent_clusters_LD{LD}_NC{NC}'), names, ['C1', 'C3'], cluster_labels, cluster_colors, dpi=300, titleTag=f" LD: {LD}, NC: {NC}")
+            names = ['Capture', 'Escape', 'Impact']
+            plot_latent_space_with_clusters(encoded_samples, labels, NC, params['mu_c'], params['logsigmasq_c'], os.path.join(folder_path, f'predicted_latent_clusters_LD{LD}_NC{NC}'), names, ['C1', 'C3', 'C5'], cluster_labels, cluster_colors, dpi=300, titleTag=f" LD: {LD}, NC: {NC}")
             plt.show()
 
             # compute true cluster probability by summing probability for all mixands in that cluster
-            pred_capture_prob, pred_failure_prob = 0, 0
+            pred_capture_prob, pred_escape_prob, pred_crash_prob = 0, 0, 0
             for aa, assigned_ind in enumerate(assigned_cluster_inds):
                 if assigned_ind == 0:
                     pred_capture_prob += params['pi_c'][aa].detach().numpy()
+                elif assigned_ind == 1:
+                    pred_escape_prob += params['pi_c'][aa].detach().numpy()
                 else:
-                    pred_failure_prob += params['pi_c'][aa].detach().numpy()
+                    pred_crash_prob += params['pi_c'][aa].detach().numpy()
             pred_capture_probs[ll, nn] = pred_capture_prob
-            pred_failure_probs[ll, nn] = pred_failure_prob
+            pred_escape_probs[ll, nn] = pred_escape_prob
+            pred_crash_probs[ll, nn] = pred_crash_prob
 
             # pass all samples through the encoder and perform em step to see which cluster they are assigned to
             pred_labels = []
@@ -172,14 +171,22 @@ def main():
 
             # Compute number of false assignments in each cluster
             false_assignments_capture = np.where((labels == 0) & (pred_labels != 0))[0]
-            false_assignments_failure = np.where((labels == 1) & (pred_labels != 1))[0]
+            false_assignments_escape = np.where((labels == 1) & (pred_labels != 1))[0]
+            false_assignments_crash = np.where((labels == 2) & (pred_labels != 2))[0]
             print(f"Number of false assignments to capture cluster: {len(false_assignments_capture)}")
-            print(f"Number of false assignments to failure cluster: {len(false_assignments_failure)}")
+            print(f"Number of false assignments to escape cluster: {len(false_assignments_escape)}")
+            print(f"Number of false assignments to impact cluster: {len(false_assignments_crash)}")
             # Get false assignment percentage
             false_assignment_capture_percentage = len(false_assignments_capture) / len(np.where(labels == 0)[0])
-            false_assignment_failure_percentage = len(false_assignments_failure) / len(np.where(labels == 1)[0])
+            false_assignment_escape_percentage = len(false_assignments_escape) / len(np.where(labels == 1)[0])
+            false_assignment_crash_percentage = len(false_assignments_crash) / len(np.where(labels == 2)[0])
             print(f"False assignment percentage to capture cluster: {false_assignment_capture_percentage*100}")
-            print(f"False assignment percentage to failure cluster: {false_assignment_failure_percentage*100}")
+            print(f"False assignment percentage to escape cluster: {false_assignment_escape_percentage*100}")
+            print(f"False assignment percentage to crash cluster: {false_assignment_crash_percentage*100}")
+
+            false_capture_percent[ll, nn] = false_assignment_capture_percentage
+            false_escape_percent[ll, nn] = false_assignment_escape_percentage
+            false_crash_percent[ll, nn] = false_assignment_crash_percentage
 
             # Plot input data energy colored by assigned cluster (pred_label)
             fig, ax = plt.subplots()
@@ -189,29 +196,30 @@ def main():
                         ax.plot(samples[ii], color='C1', alpha=0.5)
                     else:
                         ax.plot(samples[ii], color='C0', alpha=0.5)
-                else:
+                elif pred_labels[ii] == 1:  # Escape
                     if pred_labels[ii] != labels[ii]:
                         ax.plot(samples[ii], color='C3', alpha=0.5)
                     else:
                         ax.plot(samples[ii], color='C2', alpha=0.5)
+                else:  # Crash
+                    if pred_labels[ii] != labels[ii]:
+                        ax.plot(samples[ii], color='C5', alpha=0.5)
+                    else:
+                        ax.plot(samples[ii], color='C4', alpha=0.5)
             ax.set_ylabel('Scaled Energy')
             ax.set_xlabel('Downsample Index')
             ax.plot([], color='C0', label='Correctly Predicted Capture')
-            if 1 in modes:
-                ax.plot([], color='C2', label='Correctly Predicted Escape')
-            else:
-                ax.plot([], color='C2', label='Correctly Predicted Impact')
+            ax.plot([], color='C2', label='Correctly Predicted Escape')
+            ax.plot([], color='C4', label='Correctly Predicted Impact')
             ax.plot([], color='C1', label='Incorrectly Predicted Capture')
-            if 1 in modes:
-                ax.plot([], color='C3', label='Incorrectly Predicted Escape')
-            else:
-                ax.plot([], color='C3', label='Incorrectly Predicted Impact')
+            ax.plot([], color='C3', label='Incorrectly Predicted Escape')
+            ax.plot([], color='C5', label='Incorrectly Predicted Impact')
             ax.axhline(0, color='black', linestyle='--')
             ax.legend(loc='lower left')
             plt.title(f"LD: {LD}, NC: {NC}")
             plt.tight_layout()
             plt.savefig(os.path.join(folder_path, f"predicted_clusters_LD{LD}_NC{NC}.png"), dpi=300)
-            plt.close()
+            plt.show()
 
 
     if len(LDs) > 1:
@@ -233,31 +241,49 @@ def main():
         print("Latent Dim & " + " & ".join([str(NC) for NC in NCs]) + " \\\\")
         print("\\midrule")
         for ll, LD in enumerate(LDs):
-            print(f"{LD} & " + " & ".join([f"{pred_failure_probs[ll, nn]:.4f}" for nn in range(len(NCs))]) + " \\\\")
+            print(f"{LD} & " + " & ".join([f"{pred_escape_probs[ll, nn]:.4f}" for nn in range(len(NCs))]) + " \\\\")
         print("\\bottomrule")
 
-        # TODO change these to percent error
-        # Print capture probability error in latex table
-        print("Capture Probability Percent Error")
+        # Print a booktabs latex table of the predicted crash probability for number of cluster and latent dimension
+        print("Predicted Crash Probabilities")
         print("\\begin{tabular}{l" + "c" * len(NCs) + "}")
         print("\\toprule")
         print("Latent Dim & " + " & ".join([str(NC) for NC in NCs]) + " \\\\")
         print("\\midrule")
         for ll, LD in enumerate(LDs):
-            print(f"{LD} & " + " & ".join([f"{abs(pred_capture_probs[ll, nn] - capture_prob)/capture_prob*100:.4f}" for nn in range(len(NCs))]) + " \\\\")
+            print(f"{LD} & " + " & ".join([f"{pred_crash_probs[ll, nn]:.4f}" for nn in range(len(NCs))]) + " \\\\")
         print("\\bottomrule")
-        print("\\end{tabular}")
 
-        # Print escape probability error in latex table
-        print("Escape Probability Percent Error")
+
+        # Print capture percent misassignment
+        print("Predicted Capture Misassignments")
         print("\\begin{tabular}{l" + "c" * len(NCs) + "}")
         print("\\toprule")
         print("Latent Dim & " + " & ".join([str(NC) for NC in NCs]) + " \\\\")
         print("\\midrule")
         for ll, LD in enumerate(LDs):
-            print(f"{LD} & " + " & ".join([f"{abs(pred_failure_probs[ll, nn] - escape_prob)/escape_prob*100:.4f}" for nn in range(len(NCs))]) + " \\\\")
+            print(f"{LD} & " + " & ".join([f"{false_capture_percent[ll, nn]*100:.4f}" for nn in range(len(NCs))]) + " \\\\")
         print("\\bottomrule")
-        print("\\end{tabular}")
+
+        # Print escape percent misassignment
+        print("Predicted Escape Misassignments")
+        print("\\begin{tabular}{l" + "c" * len(NCs) + "}")
+        print("\\toprule")
+        print("Latent Dim & " + " & ".join([str(NC) for NC in NCs]) + " \\\\")
+        print("\\midrule")
+        for ll, LD in enumerate(LDs):
+            print(f"{LD} & " + " & ".join([f"{false_escape_percent[ll, nn]*100:.4f}" for nn in range(len(NCs))]) + " \\\\")
+        print("\\bottomrule")
+
+        # Print crash percent misassignment
+        print("Predicted Crash Misassignments")
+        print("\\begin{tabular}{l" + "c" * len(NCs) + "}")
+        print("\\toprule")
+        print("Latent Dim & " + " & ".join([str(NC) for NC in NCs]) + " \\\\")
+        print("\\midrule")
+        for ll, LD in enumerate(LDs):
+            print(f"{LD} & " + " & ".join([f"{false_crash_percent[ll, nn]*100:.4f}" for nn in range(len(NCs))]) + " \\\\")
+        print("\\bottomrule")
 
 
 if __name__ == "__main__":

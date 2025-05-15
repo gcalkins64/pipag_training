@@ -39,7 +39,7 @@ def plot_latent_space_with_clusters(samples, labels, num_clusters, cluster_means
         cluster_angles_ = np.arctan(u[:, 0, 1] / u[:, 0, 0])
 
     fig, ax = plt.subplots(figsize=(6.5,4))
-    markers = ['o', '^', "s", "d", "+", "*", "v"]
+    markers = ['o', '^', "s", "d", "+", "*", "v", "x", "H", "p", "D", "P", "X"]
     assert(len(markers) >= len(text_labels))
 
     for i in range(len(text_labels)):

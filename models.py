@@ -11,7 +11,16 @@ from torch.utils.data import DataLoader
 import copy
 import tqdm
 import numpy as np
+import random
 
+
+def seed_worker(worker_id):
+    worker_seed = 42 + worker_id
+    np.random.seed(worker_seed)
+    random.seed(worker_seed)
+
+# g = torch.Generator()
+# g.manual_seed(42)
 
 class BaseVAE(nn.Module):
     
@@ -106,6 +115,7 @@ class VAE(BaseVAE):
         return result
 
     def reparameterize(self, mu: Tensor, logvar: Tensor) -> Tensor:
+        torch.manual_seed(42)  # DETERMINISTIC SEED 
         std = torch.exp(0.5 * logvar)
         eps = torch.randn_like(std)
         return eps * std + mu
@@ -148,7 +158,13 @@ class VAE(BaseVAE):
               trn_data: Tensor,
               batch_size: int = 64,
               epochs: int = 500):
-        trn_dataloader = DataLoader(trn_data, batch_size=batch_size)
+        trn_dataloader = DataLoader(
+            trn_data, 
+            batch_size=batch_size, 
+            # shuffle=False,  # Important for deterministic order
+            # worker_init_fn=seed_worker,
+            # generator=g
+        )
         opt = torch.optim.Adam(self.parameters(), lr=1e-3, betas= (0.9, 0.99)) # not related to beta in loss function
         sch = torch.optim.lr_scheduler.ReduceLROnPlateau(opt, 'min', factor = 0.9, patience = 500, eps = 1e-5, cooldown = 2500, verbose = True)
         losses = []

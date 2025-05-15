@@ -26,7 +26,7 @@ def main():
     savePath = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data'
     R_eq = 25559e3 # m, Uranus
     mu = 5.7940*10**15,  # m^3/s^2
-    Nruns = 2000
+    Nruns = 5000
 
     # Near Escape
     # removeFlags = [2]  # 0 capture, 1 escape, 2 crash
@@ -51,12 +51,20 @@ def main():
     # norm = 142141053.1824186
 
     # All 3 modes Uniform
+    # removeFlags = []  # 0 capture, 1 escape, 2 crash
+    # tag = 'UOP_uniform_pGRAM'
+    # dataPath = '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250512120942_UOP_uniform_pGRAM_R42_C5000_Puranus_O1_Fenergy_FFTrue_DP2_GMVAEFalse'
+    # tFind = 1001  # Final time step index
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # norm = 143005107.62401044
+
+    # Combine agressive near crash and near escape
     removeFlags = []  # 0 capture, 1 escape, 2 crash
-    tag = 'UOP_uniform_pGRAM'
-    dataPath = '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250512120942_UOP_uniform_pGRAM_R42_C5000_Puranus_O1_Fenergy_FFTrue_DP2_GMVAEFalse'
-    tFind = 1001  # Final time step index
+    tag = 'UOP_near_crash_steeper_near_escape_COMBINED'
+    dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250425173914_UOP_inc_lit_disps_R0_C5000_Puranus_O1_Fenergy_FFTrue_DP2', '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250426100446_UOP_near_crash_steeper_R0_C5000_Puranus_O2_Fenergy_FFTrue_DP2']
+    tFind = 1001
     cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
-    norm = 143005107.62401044
+    norm = 142248639.65469068
 
     flagDownsample = True
     flagEnergy = True  # if true, use energy, if false, use velocity
@@ -80,14 +88,15 @@ def main():
     # Load in runs 0 to 5000 from folder that are in mat files
     datas = []
     ras = []
-    for run in trange(Nruns):
-        # Load in the data
-        data = loadmat(f'{dataPath}/run_' + str(run) + '.mat')
-        datas.append(data)
-        ras.append(data['ra'])
+    for dataPath in dataPaths:
+        for run in trange(Nruns, desc=f"Loading from {dataPath}"):
+            # Load in the data
+            data = loadmat(f'{dataPath}/run_' + str(run) + '.mat')
+            datas.append(data)
+            ras.append(data['ra'])
 
     data_dict = {}
-    data_mat = np.zeros((Nruns, downsampleNum))
+    data_mat = np.zeros((Nruns*len(dataPaths), downsampleNum))
     if flagDownsample:
         idx = np.linspace(0, tFind - 1, downsampleNum, dtype=int)
     else:
@@ -95,15 +104,20 @@ def main():
     goodInds = []
     save_ind = 0
     labels = []
-    for run in range(Nruns):
+    for run in range(Nruns*len(dataPaths)):
         data = datas[run]
         if cutoffFlag:
             vel = data['x'][3, :tFind]
             r = data['x'][0, :tFind]
         else:
             # Pad out the velocity and position data with the last value
-            vel = np.pad(data['x'][3, :], (0, tFind - data['x'].shape[1]), 'edge')
-            r = np.pad(data['x'][0, :], (0, tFind - data['x'].shape[1]), 'edge')
+            if tFind < data['x'].shape[1]:
+                vel = data['x'][3, :tFind]
+                r = data['x'][0, :tFind]
+            else:
+                vel = np.pad(data['x'][3, :], (0, tFind - data['x'].shape[1]), 'edge')
+                r = np.pad(data['x'][0, :], (0, tFind - data['x'].shape[1]), 'edge')
+
         rp = data['rp']
 
         if ras[run] < 0: # Escape
@@ -152,6 +166,11 @@ def main():
     capture_idx = np.where(labels == 0)[0]
     escape_idx = np.where(labels == 1)[0]
     crash_idx = np.where(labels == 2)[0]
+
+    # Print the number of captures, escapes, and crashs
+    print(f"Number of captures: {len(capture_idx)}")
+    print(f"Number of escapes: {len(escape_idx)}")
+    print(f"Number of crashes: {len(crash_idx)}")
 
     # 1024 + 128 + 128 = 1280 total samples
     proportions = [n_train / n_total, n_test / n_total, n_val / n_total]  # [train, val, test]
