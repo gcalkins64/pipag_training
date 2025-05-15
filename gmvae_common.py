@@ -140,13 +140,14 @@ class Decoder(nn.Module):
 
         modules = []
         modules.append(nn.Linear(latent_dim, hidden_dims[0]))
-        for i in range(len(hidden_dims) - 1):
+        for i in range(len(hidden_dims)-1):
             modules.append(
                 nn.Sequential(
                     nn.Linear(hidden_dims[i], hidden_dims[i + 1]),
                     nn.GELU())
                 # nn.ReLU())
             )
+        modules.append(nn.Linear(hidden_dims[-1], data_dim))
         self.fc = nn.Sequential(*modules)
 
 
