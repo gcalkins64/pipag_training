@@ -14,7 +14,9 @@ for LD in LDs:
     for NC in NCs:
         print(f"Processing LD: {LD}, NC: {NC}")
 
-        pattern = rf"^gmvae_em_aerocapture_energy_(20250429|20250430)_\d{{6}}_{LD}_{NC}$"
+        # pattern = rf"^gmvae_em_aerocapture_energy_(20250429|20250430)_\d{{6}}_{LD}_{NC}$"
+        # pattern = rf"^gmvae_near_escape_(20250527|20250528)_\d{{6}}_L{LD}_C{NC}$"
+        pattern = rf"^gmvae_near_crash_(20250528|20250529)_\d{{6}}_L{LD}_C{NC}$"
         matching_folders = [
             f for f in os.listdir(basePath)
             if os.path.isdir(os.path.join(basePath, f)) and re.fullmatch(pattern, f)
@@ -32,8 +34,8 @@ for LD in LDs:
 
         # Define the file path
         # file_name = f"generated_samples_LD{LD}_NC{NC}.png"
-        # file_name = f"predicted_latent_clusters_LD{LD}_NC{NC}.png"
-        file_name = f"predicted_clusters_LD{LD}_NC{NC}.png"
+        file_name = f"predicted_latent_clusters_LD{LD}_NC{NC}.png"
+        # file_name = f"predicted_clusters_LD{LD}_NC{NC}.png"
         file_path = os.path.join(folder_path, file_name)
 
         # Check if file exists before moving

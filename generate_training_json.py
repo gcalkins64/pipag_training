@@ -21,12 +21,12 @@ def split_proportional(indices, proportions):
 
 
 def main():
-    np.random.seed(0)
+    np.random.seed(1)
     # Constants
     savePath = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data'
     R_eq = 25559e3 # m, Uranus
     mu = 5.7940*10**15,  # m^3/s^2
-    Nruns = 5000
+    Nruns = 2000
 
     # Near Escape
     # removeFlags = [2]  # 0 capture, 1 escape, 2 crash
@@ -59,12 +59,39 @@ def main():
     # norm = 143005107.62401044
 
     # Combine agressive near crash and near escape
-    removeFlags = []  # 0 capture, 1 escape, 2 crash
-    tag = 'UOP_near_crash_steeper_near_escape_COMBINED'
-    dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250425173914_UOP_inc_lit_disps_R0_C5000_Puranus_O1_Fenergy_FFTrue_DP2', '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250426100446_UOP_near_crash_steeper_R0_C5000_Puranus_O2_Fenergy_FFTrue_DP2']
-    tFind = 1001
+    # removeFlags = []  # 0 capture, 1 escape, 2 crash
+    # tag = 'UOP_near_crash_steeper_near_escape_COMBINED'
+    # dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250425173914_UOP_inc_lit_disps_R0_C5000_Puranus_O1_Fenergy_FFTrue_DP2', '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250426100446_UOP_near_crash_steeper_R0_C5000_Puranus_O2_Fenergy_FFTrue_DP2']
+    # tFind = 1001
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # norm = 142248639.65469068
+
+    # Polynomial truth
+    # removeFlags = []
+    # tag = 'UOP_poly_truth'
+    # dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250513140548_UOP_uniform_poly_R42_C5000_Puranus_O1_Fenergy_FFTrue_DP-1_GMVAEFalse']
+    # tFind = 1001
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # norm = 142380579.93189436
+
+    # near-crash pGRAM Normal
+    # removeFlags = []
+    # tag = '1_near_crash_fnpag'
+    # dataPaths = [
+    #     '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250526170111_1_near_crash_fnpag_R12_C2000_Puranus_O2_Fenergy_FFTrue_DP0_GMVAEFalse']
+    # tFind = 1501
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # norm = 142193148.77261898
+
+    # near-escape pGRAM Normal
+    removeFlags = [2]
+    tag = '1_near_escape_fnpag'
+    dataPaths = [
+        '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250526202825_1_near_escape_fnpag_R12_C2000_Puranus_O1_Fenergy_FFTrue_DP0_GMVAEFalse']
+    tFind = 1501
     cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
-    norm = 142248639.65469068
+    norm = 142193148.77261898
+
 
     flagDownsample = True
     flagEnergy = True  # if true, use energy, if false, use velocity
@@ -143,7 +170,7 @@ def main():
             normed_data = data
 
         data_dict[f'sample{save_ind}'] = {dataName: normed_data[idx].tolist(), 'label': label}
-        data_mat[run, :] = normed_data[idx]
+        data_mat[save_ind, :] = normed_data[idx]
         save_ind += 1
         labels.append(label)
 
@@ -175,8 +202,14 @@ def main():
     # 1024 + 128 + 128 = 1280 total samples
     proportions = [n_train / n_total, n_test / n_total, n_val / n_total]  # [train, val, test]
 
-    escape_train, escape_val, escape_test = split_proportional(escape_idx, proportions)
-    crash_train, crash_val, crash_test = split_proportional(crash_idx, proportions)
+    if 1 not in removeFlags:
+        escape_train, escape_val, escape_test = split_proportional(escape_idx, proportions)
+    else:
+        escape_train, escape_val, escape_test = np.array([]), np.array([]), np.array([])
+    if 2 not in removeFlags:
+        crash_train, crash_val, crash_test = split_proportional(crash_idx, proportions)
+    else:
+        crash_train, crash_val, crash_test = np.array([]), np.array([]), np.array([])
 
     # Step 3: Compute how many capture samples are needed to fill each set
     train_needed = n_train - len(escape_train) - len(crash_train)
@@ -213,7 +246,7 @@ def main():
     for ii, run in enumerate(goodInds):
         label = data_dict[f'sample{ii}']['label']
         color = f"C{label}"
-        ax.plot(data_mat[run, :], color=color)
+        ax.plot(data_mat[ii, :], color=color)
     line1 = plt.Line2D([0], [0], color='C0', label='Capture')
     line2 = plt.Line2D([0], [0], color='C1', label='Escape')
     line3 = plt.Line2D([0], [0], color='C2', label='Crash')
@@ -229,22 +262,22 @@ def main():
     fig, axs = plt.subplots(1,3, figsize=(8,5), sharey=True)
 
     for ii, run in enumerate(train_indices):
-        label = data_dict[f'sample{run}']['label']
+        label = data_dict[f'sample{ii}']['label']
         color = f"C{label}"
-        axs[0].plot(data_mat[run, :], color=color)
+        axs[0].plot(data_mat[ii, :], color=color)
     axs[0].set_title('Training Data')
 
     for ii, run in enumerate(val_indices):
-        label = data_dict[f'sample{run}']['label']
+        label = data_dict[f'sample{ii}']['label']
         color = f"C{label}"
-        axs[1].plot(data_mat[run, :], color=color)
+        axs[1].plot(data_mat[ii, :], color=color)
     axs[1].set_title('Validation Data')
     axs[1].set_yticklabels([])
 
     for ii, run in enumerate(test_indices):
-        label = data_dict[f'sample{run}']['label']
+        label = data_dict[f'sample{ii}']['label']
         color = f"C{label}"
-        axs[2].plot(data_mat[run, :], color=color)
+        axs[2].plot(data_mat[ii, :], color=color)
     axs[2].set_title('Testing Data')
     axs[2].set_yticklabels([])
     axs[0].set_ylabel(f'{r"Velocity (m/s)" if not flagEnergy else r"Energy (m$^2$/s$^2$)"}')
