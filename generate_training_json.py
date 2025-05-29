@@ -26,29 +26,34 @@ def main():
     savePath = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data'
     R_eq = 25559e3 # m, Uranus
     mu = 5.7940*10**15,  # m^3/s^2
-    Nruns = 2000
+    Nruns = 5000
 
     # Near Escape
     # removeFlags = [2]  # 0 capture, 1 escape, 2 crash
     # tag = 'UOP_inc_lit_disps'
-    # dataPath = '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250425173914_UOP_inc_lit_disps_R0_C5000_Puranus_O1_Fenergy_FFTrue_DP2'
+    # dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250425173914_UOP_inc_lit_disps_R0_C5000_Puranus_O1_Fenergy_FFTrue_DP2']
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
     # tFind = 1001  # Final time step index
     # norm = 142248870.22982892
+    # distributeFailureFlag = False  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
 
     # Near Crash
     # removeFlags = []  # 0 capture, 1 escape, 2 crash
     # tag = 'UOP_near_crash_extend'
-    # dataPath = '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250425235334_UOP_near_crash_R0_C5000_Puranus_O2_Fenergy_FFTrue_DP2'
+    # dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250425235334_UOP_near_crash_R0_C5000_Puranus_O2_Fenergy_FFTrue_DP2']
     # tFind = 2001  # Final time step index
     # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
     # norm = 142145066.67666337
+    # distributeFailureFlag = False  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
 
     # Agressive Near Crash
-    # removeFlags = [1]  # 0 capture, 1 escape, 2 crash
-    # tag = 'UOP_near_crash_steeper'
-    # dataPath = '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250426100446_UOP_near_crash_steeper_R0_C5000_Puranus_O2_Fenergy_FFTrue_DP2'
-    # tFind = 867  # Final time step index
-    # norm = 142141053.1824186
+    removeFlags = [1]  # 0 capture, 1 escape, 2 crash
+    tag = 'UOP_near_crash_steeper'
+    dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250426100446_UOP_near_crash_steeper_R0_C5000_Puranus_O2_Fenergy_FFTrue_DP2']
+    tFind = 867  # Final time step index
+    norm = 142141053.1824186
+    cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    distributeFailureFlag = False  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
 
     # All 3 modes Uniform
     # removeFlags = []  # 0 capture, 1 escape, 2 crash
@@ -84,13 +89,13 @@ def main():
     # norm = 142193148.77261898
 
     # near-escape pGRAM Normal
-    removeFlags = [2]
-    tag = '1_near_escape_fnpag'
-    dataPaths = [
-        '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250526202825_1_near_escape_fnpag_R12_C2000_Puranus_O1_Fenergy_FFTrue_DP0_GMVAEFalse']
-    tFind = 1501
-    cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
-    norm = 142193148.77261898
+    # removeFlags = [2]
+    # tag = '1_near_escape_fnpag'
+    # dataPaths = [
+    #     '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250526202825_1_near_escape_fnpag_R12_C2000_Puranus_O1_Fenergy_FFTrue_DP0_GMVAEFalse']
+    # tFind = 1501
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # norm = 142193148.77261898
 
 
     flagDownsample = True
@@ -184,51 +189,58 @@ def main():
     save_path = f'{savePath}/{tag}_{Nruns}_data_{suffix}.mat'
     savemat(save_path, {'data': data_mat})
 
-    # Get 1024 training, 128 validation, and 128 test sample indices including ALL crashes and escapes proportionally distributed between the three sets and filling the rest with the captures
-    labels = np.array(labels)
     n_train, n_test, n_val = 1024, 128, 128
     n_total = n_train + n_test + n_val
+    if distributeFailureFlag:
+        # Get 1024 training, 128 validation, and 128 test sample indices including ALL crashes and escapes proportionally distributed between the three sets and filling the rest with the captures
+        labels = np.array(labels)
 
-    # Step 1: Separate indices by label
-    capture_idx = np.where(labels == 0)[0]
-    escape_idx = np.where(labels == 1)[0]
-    crash_idx = np.where(labels == 2)[0]
+        # Step 1: Separate indices by label
+        capture_idx = np.where(labels == 0)[0]
+        escape_idx = np.where(labels == 1)[0]
+        crash_idx = np.where(labels == 2)[0]
 
-    # Print the number of captures, escapes, and crashs
-    print(f"Number of captures: {len(capture_idx)}")
-    print(f"Number of escapes: {len(escape_idx)}")
-    print(f"Number of crashes: {len(crash_idx)}")
+        # Print the number of captures, escapes, and crashs
+        print(f"Number of captures: {len(capture_idx)}")
+        print(f"Number of escapes: {len(escape_idx)}")
+        print(f"Number of crashes: {len(crash_idx)}")
 
-    # 1024 + 128 + 128 = 1280 total samples
-    proportions = [n_train / n_total, n_test / n_total, n_val / n_total]  # [train, val, test]
+        # 1024 + 128 + 128 = 1280 total samples
+        proportions = [n_train / n_total, n_test / n_total, n_val / n_total]  # [train, val, test]
 
-    if 1 not in removeFlags:
-        escape_train, escape_val, escape_test = split_proportional(escape_idx, proportions)
+        if 1 not in removeFlags:
+            escape_train, escape_val, escape_test = split_proportional(escape_idx, proportions)
+        else:
+            escape_train, escape_val, escape_test = np.array([]), np.array([]), np.array([])
+        if 2 not in removeFlags:
+            crash_train, crash_val, crash_test = split_proportional(crash_idx, proportions)
+        else:
+            crash_train, crash_val, crash_test = np.array([]), np.array([]), np.array([])
+
+        # Step 3: Compute how many capture samples are needed to fill each set
+        train_needed = n_train - len(escape_train) - len(crash_train)
+        val_needed = n_test - len(escape_val) - len(crash_val)
+        test_needed = n_val - len(escape_test) - len(crash_test)
+
+        np.random.shuffle(capture_idx)
+        capture_train = capture_idx[:train_needed]
+        capture_val = capture_idx[train_needed:train_needed + val_needed]
+        capture_test = capture_idx[train_needed + val_needed:train_needed + val_needed + test_needed]
+
+        # Step 4: Combine and shuffle
+        train_indices = np.concatenate([escape_train, crash_train, capture_train])
+        val_indices = np.concatenate([escape_val, crash_val, capture_val])
+        test_indices = np.concatenate([escape_test, crash_test, capture_test])
+
+        np.random.shuffle(train_indices)
+        np.random.shuffle(val_indices)
+        np.random.shuffle(test_indices)
     else:
-        escape_train, escape_val, escape_test = np.array([]), np.array([]), np.array([])
-    if 2 not in removeFlags:
-        crash_train, crash_val, crash_test = split_proportional(crash_idx, proportions)
-    else:
-        crash_train, crash_val, crash_test = np.array([]), np.array([]), np.array([])
-
-    # Step 3: Compute how many capture samples are needed to fill each set
-    train_needed = n_train - len(escape_train) - len(crash_train)
-    val_needed = n_test - len(escape_val) - len(crash_val)
-    test_needed = n_val - len(escape_test) - len(crash_test)
-
-    np.random.shuffle(capture_idx)
-    capture_train = capture_idx[:train_needed]
-    capture_val = capture_idx[train_needed:train_needed + val_needed]
-    capture_test = capture_idx[train_needed + val_needed:train_needed + val_needed + test_needed]
-
-    # Step 4: Combine and shuffle
-    train_indices = np.concatenate([escape_train, crash_train, capture_train])
-    val_indices = np.concatenate([escape_val, crash_val, capture_val])
-    test_indices = np.concatenate([escape_test, crash_test, capture_test])
-
-    np.random.shuffle(train_indices)
-    np.random.shuffle(val_indices)
-    np.random.shuffle(test_indices)
+        # Randomly draw 1024 training, 128 validation, and 128 test sample
+        inds = np.random.choice(Nruns, size=n_total, replace=False)
+        train_indices = inds[:n_train]
+        val_indices = inds[n_train:n_train+n_val]
+        test_indices = inds[n_train+n_val:]
 
     # Results
     print(f"Train: {len(train_indices)}, Val: {len(val_indices)}, Test: {len(test_indices)}")

@@ -42,8 +42,10 @@ def plot_latent_space_with_clusters(samples, labels, num_clusters, cluster_means
     markers = ['o', '^', "s", "d", "+", "*", "v", "x", "H", "p", "D", "P", "X"]
     # assert(len(markers) >= len(text_labels))
 
+    unique_labels = torch.unique(labels, return_counts=True)
     for i in range(len(text_labels)):
-        samples_i = samples_[labels == i]
+        this_label = unique_labels[i]
+        samples_i = samples_[labels == this_label]
         if samples_i.shape[0] > 0:
           ax.scatter(samples_i[:, 0], samples_i[:, 1], marker=markers[i], s=50, label=text_labels[i], color=data_colors[i])
 
