@@ -27,7 +27,10 @@ def main():
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/UOP_near_crash_steeper_5000_data_energy_scaled_downsampled_.json"
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/UOP_poly_truth_1500_data_energy_scaled_downsampled_.json"
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/1_near_escape_fnpag_2000_data_energy_scaled_downsampled_.json"
-    inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/1_near_crash_fnpag_2000_data_energy_scaled_downsampled_.json"
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/1_near_crash_fnpag_2000_data_energy_scaled_downsampled_.json"
+    inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/1_near_escape_new_2000_data_energy_scaled_downsampled_.json"
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/1_near_crash_new_2000_data_energy_scaled_downsampled_.json"
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/1_uniform_new_2000_data_energy_scaled_downsampled_.json"
 
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250514_182106_5_5'  # Combined data
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250512_200948_5_5'  # Uniform data
@@ -38,13 +41,16 @@ def main():
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250522_164110_6_6'  # Polynomial uniform truth, larger arch
     # folder_path =  '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250429_155516_5_4'  # Crash
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250429_183447_5_5'  # Escape
+    # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_near_crash_new_20250601_065902_L5_C5_retrained'  # near crash retrained
+    folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_near_escape_new_20250601_073224_L7_C3_retrained'  # near escape retrained
 
+    saveTag = 'escape_retrain'
 
-    # LDs = [5]  #[4,5,6]
-    # NCs = [4]  #[2,3,4,5,6]
+    LDs = [7]  #[4,5,6]
+    NCs = [3]  #[2,3,4,5,6]
 
-    LDs = [4,5,6]  # Latent dimensions to test
-    NCs = [2,3,4,5,6]  # Number of clusters to test
+    # LDs = [5,6,7]  # Latent dimensions to test
+    # NCs = [2,3,4,5,6]  # Number of clusters to test
 
     # load in json
     with open(inputDataPath, 'r') as f:
@@ -73,8 +79,6 @@ def main():
     print("True Escape Prob: ", escape_prob)
     print("True Impact Prob: ", impact_prob)
 
-    # TODO add something about which clusters are are looking at for the loops
-
     # LABEL 0 = CAPTURE
     # LABEL 1 = ESCAPE
     # LABEL 2 = IMPACT
@@ -90,10 +94,13 @@ def main():
         for nn, NC in enumerate(NCs):
             # Load in encoder
             print(f"LD: {LD}, NC: {NC}")
-            if len(LDs) > 1:
+            if len(NCs) > 1 or len(LDs) > 1:
                 # pattern = rf"^gmvae_em_aerocapture_energy_(20250429|20250430)_\d{{6}}_{LD}_{NC}$"
                 # pattern = rf"^gmvae_near_escape_(20250527|20250528)_\d{{6}}_L{LD}_C{NC}$"
-                pattern = rf"^gmvae_near_crash_(20250528|20250529)_\d{{6}}_L{LD}_C{NC}$"
+                # pattern = rf"^gmvae_near_crash_(20250528|20250529)_\d{{6}}_L{LD}_C{NC}$"
+                pattern = rf"^gmvae_near_escape_new_20250601_\d{{6}}_L{LD}_C{NC}$"
+                # pattern = rf"^gmvae_near_crash_new_20250601_\d{{6}}_L{LD}_C{NC}$"
+                # pattern = rf"^gmvae_uniform_new_20250601_\d{{6}}_L{LD}_C{NC}$"
                 folder_path = [
                     f for f in os.listdir(basePath)
                     if os.path.isdir(os.path.join(basePath, f)) and re.fullmatch(pattern, f)
@@ -109,7 +116,7 @@ def main():
             suffix = [file for file in os.listdir(folder_path) if file.startswith("encoder")][0][8:-3]
 
             # Load in decoder and params
-            encoder, params, em_reg = loadEncoderAndParams(folder_path, suffix, data_dim=64, latent_dim=LD, hidden_dims=[48,32], oldFlag=False)  # type: ignore
+            encoder, params, em_reg = loadEncoderAndParams(folder_path, suffix, data_dim=64, latent_dim=LD, hidden_dims=[32,16], oldFlag=False)  # type: ignore
 
             # For each GMVAE, figure out which mixands describe which clusters as which data cluster has the smallest mahalanobis distance from each cluster mean / variance in latent space
             # run all samples through encoder
@@ -156,7 +163,7 @@ def main():
 
             encoded_samples = np.squeeze(np.array([t.detach().numpy() for t in encoded_samples]))
             names = ['Capture', 'Escape', 'Impact']
-            plot_latent_space_with_clusters(encoded_samples, labels, NC, params['mu_c'], params['logsigmasq_c'], os.path.join(folder_path, f'predicted_latent_clusters_LD{LD}_NC{NC}'), names, ['C1', 'C3', 'C5'], cluster_labels, cluster_colors, dpi=300, titleTag=f" LD: {LD}, NC: {NC}")
+            plot_latent_space_with_clusters(encoded_samples, labels, NC, params['mu_c'], params['logsigmasq_c'], os.path.join(folder_path, f'predicted_latent_clusters_{saveTag}_LD{LD}_NC{NC}'), names, ['C1', 'C3', 'C5'], cluster_labels, cluster_colors, dpi=300, titleTag=f" LD: {LD}, NC: {NC}")
             # plt.show()
 
             # compute true cluster probability by summing probability for all mixands in that cluster
@@ -245,7 +252,7 @@ def main():
             ax.legend(loc='lower left')
             plt.title(f"LD: {LD}, NC: {NC}")
             plt.tight_layout()
-            plt.savefig(os.path.join(folder_path, f"predicted_clusters_LD{LD}_NC{NC}.png"), dpi=300)
+            plt.savefig(os.path.join(folder_path, f"predicted_clusters_{saveTag}_LD{LD}_NC{NC}.png"), dpi=300)
             # plt.show()
 
             fig, axs = plt.subplots(1,3, figsize=(12,4), sharey=True)
@@ -288,17 +295,17 @@ def main():
                 ax.legend(loc='lower left')
             plt.suptitle(f"LD: {LD}, NC: {NC}")
             plt.tight_layout()
-            plt.savefig(os.path.join(folder_path, f"breakout_predicted_clusters_LD{LD}_NC{NC}.png"), dpi=300)
+            plt.savefig(os.path.join(folder_path, f"breakout_predicted_clusters_{saveTag}_LD{LD}_NC{NC}.png"), dpi=300)
             # plt.show()
 
-    if len(LDs) == 1:
+    if len(LDs) == 1 or len(NCs) == 1:
         print(f'"encoderPathX": "{folder_path}",')
         print(f'"encoderSuffixX": "{suffix}", ')
         print(f'"captureIndsX": {[i for i, val in enumerate(assigned_cluster_inds) if val == 0]}, ')
         print(f'"escapeIndsX": {[i for i, val in enumerate(assigned_cluster_inds) if val == 1]}, ')
         print(f'"crashIndsX": {[i for i, val in enumerate(assigned_cluster_inds) if val == 2]}, ')
 
-    if len(LDs) > 1:
+    if len(LDs) > 1 or len(NCs) > 1:
         # Print a booktabs latex table of the predicted capture probability for number of cluster and latent dimension
         print("Predicted Capture Probabilities")
         print("\\begin{tabular}{l" + "c" * len(NCs) + "}")
@@ -332,7 +339,9 @@ def main():
 
 
         # Print capture percent misassignment
-        print("Predicted Capture Misassignments")
+        print("\\begin{table}{H}")
+        print("\\centering")
+        print("\\caption{Predicted Capture Misassignments}")
         print("\\begin{tabular}{l" + "c" * len(NCs) + "}")
         print("\\toprule")
         print("Latent Dim & " + " & ".join([str(NC) for NC in NCs]) + " \\\\")
@@ -340,9 +349,13 @@ def main():
         for ll, LD in enumerate(LDs):
             print(f"{LD} & " + " & ".join([f"{false_capture_percent[ll, nn]*100:.4f}" for nn in range(len(NCs))]) + " \\\\")
         print("\\bottomrule")
+        print("\\end{tabular}")
+        print("\\end{table}")
 
         # Print escape percent misassignment
-        print("Predicted Escape Misassignments")
+        print("\\begin{table}{H}")
+        print("\\centering")
+        print("\\caption{Predicted Escape Misassignments}")
         print("\\begin{tabular}{l" + "c" * len(NCs) + "}")
         print("\\toprule")
         print("Latent Dim & " + " & ".join([str(NC) for NC in NCs]) + " \\\\")
@@ -350,9 +363,13 @@ def main():
         for ll, LD in enumerate(LDs):
             print(f"{LD} & " + " & ".join([f"{false_escape_percent[ll, nn]*100:.4f}" for nn in range(len(NCs))]) + " \\\\")
         print("\\bottomrule")
+        print("\\end{tabular}")
+        print("\\end{table}")
 
         # Print crash percent misassignment
-        print("Predicted Crash Misassignments")
+        print("\\begin{table}{H}")
+        print("\\centering")
+        print("\\caption{Predicted Crash Misassignments}")
         print("\\begin{tabular}{l" + "c" * len(NCs) + "}")
         print("\\toprule")
         print("Latent Dim & " + " & ".join([str(NC) for NC in NCs]) + " \\\\")
@@ -360,9 +377,13 @@ def main():
         for ll, LD in enumerate(LDs):
             print(f"{LD} & " + " & ".join([f"{false_crash_percent[ll, nn]*100:.4f}" for nn in range(len(NCs))]) + " \\\\")
         print("\\bottomrule")
+        print("\\end{tabular}")
+        print("\\end{table}")
 
         # Print average percent misassignment
-        print("Average Misassignments")
+        print("\\begin{table}{H}")
+        print("\\centering")
+        print("\\caption{Average Misassignments}")
         print("\\begin{tabular}{l" + "c" * len(NCs) + "}")
         print("\\toprule")
         print("Latent Dim & " + " & ".join([str(NC) for NC in NCs]) + " \\\\")
@@ -371,6 +392,8 @@ def main():
             print(f"{LD} & " + " & ".join(
                 [f"{np.nanmean([false_crash_percent[ll, nn], false_escape_percent[ll, nn], false_capture_percent[ll, nn]]) * 100:.4f}" for nn in range(len(NCs))]) + " \\\\")
         print("\\bottomrule")
+        print("\\end{tabular}")
+        print("\\end{table}")
 
 
 if __name__ == "__main__":

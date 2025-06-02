@@ -26,16 +26,16 @@ def main():
     savePath = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data'
     R_eq = 25559e3 # m, Uranus
     mu = 5.7940*10**15,  # m^3/s^2
-    Nruns = 5000
+    Nruns = 2000
 
     # Near Escape
     # removeFlags = [2]  # 0 capture, 1 escape, 2 crash
-    # tag = 'UOP_inc_lit_disps'
+    # tag = 'UOP_inc_lit_disps_DISTRIBUTE'
     # dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250425173914_UOP_inc_lit_disps_R0_C5000_Puranus_O1_Fenergy_FFTrue_DP2']
     # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
     # tFind = 1001  # Final time step index
     # norm = 142248870.22982892
-    # distributeFailureFlag = False  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
 
     # Near Crash
     # removeFlags = []  # 0 capture, 1 escape, 2 crash
@@ -47,13 +47,13 @@ def main():
     # distributeFailureFlag = False  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
 
     # Agressive Near Crash
-    removeFlags = [1]  # 0 capture, 1 escape, 2 crash
-    tag = 'UOP_near_crash_steeper'
-    dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250426100446_UOP_near_crash_steeper_R0_C5000_Puranus_O2_Fenergy_FFTrue_DP2']
-    tFind = 867  # Final time step index
-    norm = 142141053.1824186
-    cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
-    distributeFailureFlag = False  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    # removeFlags = [1]  # 0 capture, 1 escape, 2 crash
+    # tag = 'UOP_near_crash_steeper'
+    # dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250426100446_UOP_near_crash_steeper_R0_C5000_Puranus_O2_Fenergy_FFTrue_DP2']
+    # tFind = 867  # Final time step index
+    # norm = 142141053.1824186
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # distributeFailureFlag = False  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
 
     # All 3 modes Uniform
     # removeFlags = []  # 0 capture, 1 escape, 2 crash
@@ -90,12 +90,43 @@ def main():
 
     # near-escape pGRAM Normal
     # removeFlags = [2]
-    # tag = '1_near_escape_fnpag'
+    # tag = '1_near_escape_fnpag_NOT_DISTRIBUTE'
     # dataPaths = [
     #     '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250526202825_1_near_escape_fnpag_R12_C2000_Puranus_O1_Fenergy_FFTrue_DP0_GMVAEFalse']
     # tFind = 1501
     # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # distributeFailureFlag = False  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
     # norm = 142193148.77261898
+
+    # Near Crash Gaussian DP 2 New
+    # removeFlags = [1]
+    # tag = '1_near_crash_new'
+    # dataPaths = [
+    #     '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250529151805_1_near_crash_fnpag_dp2_R12_C2000_Puranus_O2_Fenergy_FFTrue_DP2_GMVAEFalse']
+    # tFind = 1501
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    # norm = 142080110.79264465
+
+    # Near Escape Gaussian DP 2 New
+    removeFlags = [2]
+    tag = '1_near_escape_new'
+    dataPaths = [
+        '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250530081822_1_near_escape_fnpag_R12_C2000_Puranus_O1_Fenergy_FFTrue_DP2_GMVAEFalse']
+    tFind = 1501
+    cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    norm = 142189099.88110465
+
+    # Uniform DP 2 New
+    removeFlags = []
+    tag = '1_uniform_new'
+    dataPaths = [
+        '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250531210540_1_uni_fnpag_dp2_R12_C2000_Puranus_O1_Fenergy_FFTrue_DP2_GMVAEFalse']
+    tFind = 1501
+    cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    norm = 142649636.16317078
 
 
     flagDownsample = True
