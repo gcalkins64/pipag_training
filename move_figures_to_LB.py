@@ -7,8 +7,8 @@ import json
 basePath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/"
 destination_folder = "/Users/gracecalkins/Library/CloudStorage/OneDrive-UCB-O365/LaTeX/My_Lab_Notebook_25_01/figures"
 
-LDs = [4, 5, 6]
-# LDs = [5,6,7]
+# LDs = [4,5,6]
+LDs = [5,6,7]
 NCs = [2, 3, 4, 5, 6]
 
 for LD in LDs:
@@ -18,8 +18,9 @@ for LD in LDs:
         # pattern = rf"^gmvae_em_aerocapture_energy_(20250429|20250430)_\d{{6}}_{LD}_{NC}$"
         # pattern = rf"^gmvae_near_escape_(20250527|20250528)_\d{{6}}_L{LD}_C{NC}$"
         # pattern = rf"^gmvae_near_crash_(20250528|20250529)_\d{{6}}_L{LD}_C{NC}$"
-        # pattern = rf"^gmvae_near_escape_new_20250601_\d{{6}}_L{LD}_C{NC}$"
-        pattern = rf"^gmvae_near_crash_new_20250601_\d{{6}}_L{LD}_C{NC}$"
+        pattern = rf"^gmvae_near_escape_new_20250601_\d{{6}}_L{LD}_C{NC}$"
+        # pattern = rf"^gmvae_uniform_new_20250601_\d{{6}}_L{LD}_C{NC}$"
+        # pattern = rf"^gmvae_near_crash_new_20250601_\d{{6}}_L{LD}_C{NC}$"
         matching_folders = [
             f for f in os.listdir(basePath)
             if os.path.isdir(os.path.join(basePath, f)) and re.fullmatch(pattern, f)
@@ -37,8 +38,8 @@ for LD in LDs:
 
         # Define the file path
         # file_name = f"generated_samples_LD{LD}_NC{NC}.png"
-        # file_name = f"predicted_latent_clusters_crash_LD{LD}_NC{NC}.png"
-        file_name = f"predicted_clusters_crash_LD{LD}_NC{NC}.png"
+        file_name = f"predicted_latent_clusters_escape_new_LD{LD}_NC{NC}.png"
+        # file_name = f"predicted_clusters_uni_LD{LD}_NC{NC}.png"
         file_path = os.path.join(folder_path, file_name)
 
         # Check if file exists before moving

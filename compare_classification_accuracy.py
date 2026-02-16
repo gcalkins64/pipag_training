@@ -28,8 +28,8 @@ def main():
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/UOP_poly_truth_1500_data_energy_scaled_downsampled_.json"
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/1_near_escape_fnpag_2000_data_energy_scaled_downsampled_.json"
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/1_near_crash_fnpag_2000_data_energy_scaled_downsampled_.json"
-    inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/1_near_escape_new_2000_data_energy_scaled_downsampled_.json"
-    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/1_near_crash_new_2000_data_energy_scaled_downsampled_.json"
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/1_near_escape_new_2000_data_energy_scaled_downsampled_.json"
+    inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/1_near_crash_new_2000_data_energy_scaled_downsampled_.json"
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/1_uniform_new_2000_data_energy_scaled_downsampled_.json"
 
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250514_182106_5_5'  # Combined data
@@ -42,12 +42,12 @@ def main():
     # folder_path =  '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250429_155516_5_4'  # Crash
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250429_183447_5_5'  # Escape
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_near_crash_new_20250601_065902_L5_C5_retrained'  # near crash retrained
-    folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_near_escape_new_20250601_073224_L7_C3_retrained'  # near escape retrained
+    # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_near_escape_new_20250601_073224_L7_C3_retrained'  # near escape retrained
 
-    saveTag = 'escape_retrain'
+    saveTag = 'crash_new'
 
-    LDs = [7]  #[4,5,6]
-    NCs = [3]  #[2,3,4,5,6]
+    LDs = [4,5,6]  #[4,5,6]
+    NCs = [2,3,4,5,6]  #[2,3,4,5,6]
 
     # LDs = [5,6,7]  # Latent dimensions to test
     # NCs = [2,3,4,5,6]  # Number of clusters to test
@@ -98,8 +98,8 @@ def main():
                 # pattern = rf"^gmvae_em_aerocapture_energy_(20250429|20250430)_\d{{6}}_{LD}_{NC}$"
                 # pattern = rf"^gmvae_near_escape_(20250527|20250528)_\d{{6}}_L{LD}_C{NC}$"
                 # pattern = rf"^gmvae_near_crash_(20250528|20250529)_\d{{6}}_L{LD}_C{NC}$"
-                pattern = rf"^gmvae_near_escape_new_20250601_\d{{6}}_L{LD}_C{NC}$"
-                # pattern = rf"^gmvae_near_crash_new_20250601_\d{{6}}_L{LD}_C{NC}$"
+                # pattern = rf"^gmvae_near_escape_new_20250601_\d{{6}}_L{LD}_C{NC}$"
+                pattern = rf"^gmvae_near_crash_new_20250601_\d{{6}}_L{LD}_C{NC}$"
                 # pattern = rf"^gmvae_uniform_new_20250601_\d{{6}}_L{LD}_C{NC}$"
                 folder_path = [
                     f for f in os.listdir(basePath)

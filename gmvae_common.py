@@ -280,7 +280,7 @@ def seed_worker(worker_id):
 
 class AerocaptureDataModuleCUDA(LightningDataModule):
     def __init__(self, data_dir: str = "./", n_train: int = 5000, n_val: int = 100, n_test: int = 100,
-                 train_batch: int = 1, val_batch: int = 1, test_batch: int = 1, num_workers=8, downsampleNum=64, SEED=42):
+                 train_batch: int = 1, val_batch: int = 1, test_batch: int = 1, num_workers=8, downsampleNum=64, SEED=42, dataName='energy'):
         super().__init__()
         self.data_dir = data_dir
         self.n_train = n_train
@@ -295,7 +295,7 @@ class AerocaptureDataModuleCUDA(LightningDataModule):
         self.downsampleNum = downsampleNum
         self.generator = torch.Generator(device="cuda").manual_seed(SEED)
         self.SEED = SEED
-
+        self.dataName = dataName
     def setup(self, stage=None, sample_list=None):
         random.seed(self.SEED)
         np.random.seed(self.SEED)
@@ -326,7 +326,7 @@ class AerocaptureDataModuleCUDA(LightningDataModule):
         # ASSUMES DATA IS ALREADY DOWNSAMPLED AND SCALED
         for i in tqdm_notebook(range(self.n_samples)):
             j = sample_list[i]
-            this_data = np.array(data_dict[f'sample{j}']['energy'])[:]
+            this_data = np.array(data_dict[f'sample{j}'][self.dataName])[:]
             this_label = data_dict[f'sample{j}']['label']
 
             if i >= 0 and i < self.n_train:

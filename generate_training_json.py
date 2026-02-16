@@ -5,6 +5,9 @@ from tqdm import trange
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from scipy.interpolate import PchipInterpolator
+
+
 
 # Step 2: Determine proportional splits for escape and crash
 def split_proportional(indices, proportions):
@@ -26,7 +29,7 @@ def main():
     savePath = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data'
     R_eq = 25559e3 # m, Uranus
     mu = 5.7940*10**15,  # m^3/s^2
-    Nruns = 2000
+    Nruns = 1000
 
     # Near Escape
     # removeFlags = [2]  # 0 capture, 1 escape, 2 crash
@@ -109,32 +112,42 @@ def main():
     # norm = 142080110.79264465
 
     # Near Escape Gaussian DP 2 New
-    removeFlags = [2]
-    tag = '1_near_escape_new'
-    dataPaths = [
-        '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250530081822_1_near_escape_fnpag_R12_C2000_Puranus_O1_Fenergy_FFTrue_DP2_GMVAEFalse']
-    tFind = 1501
-    cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
-    distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
-    norm = 142189099.88110465
+    # removeFlags = [2]
+    # tag = '1_near_escape_new'
+    # dataPaths = [
+    #     '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250530081822_1_near_escape_fnpag_R12_C2000_Puranus_O1_Fenergy_FFTrue_DP2_GMVAEFalse']
+    # tFind = 1501
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    # norm = 142189099.88110465
 
     # Uniform DP 2 New
+    # removeFlags = []
+    # tag = '1_uniform_new'
+    # dataPaths = [
+    #     '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250531210540_1_uni_fnpag_dp2_R12_C2000_Puranus_O1_Fenergy_FFTrue_DP2_GMVAEFalse']
+    # tFind = 1501
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    # norm = 142649636.16317078
+
+    # Revision GU mixture p = 0.3, 2-4 sigma tails 
     removeFlags = []
-    tag = '1_uniform_new'
-    dataPaths = [
-        '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20250531210540_1_uni_fnpag_dp2_R12_C2000_Puranus_O1_Fenergy_FFTrue_DP2_GMVAEFalse']
+    tag = 'rev_gumixture'
+    dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260214093453_rev_fnpag_15_gumixture_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.5_GMVAEFalse']
     tFind = 1501
     cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
     distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
-    norm = 142649636.16317078
-
+    norm = 1
 
     flagDownsample = True
-    flagEnergy = True  # if true, use energy, if false, use velocity
+    flagEnergy = False  # if true, use energy, if false, use velocity
     flagScale = True # if true, scale the data, if false, don't scale
+    flagAltitude = True  # if True, use altitude as the y axis, and energy as the x-axis and scale everything to be equidistant in altitude
 
     if flagDownsample:
-        downsampleNum = 64
+        # downsampleNum = 64. For orignal paper
+        downsampleNum = 36 # For revision
     else:
         downsampleNum = tFind
 
@@ -143,10 +156,14 @@ def main():
         norm = 10_000  # m/s
         offset = 18_000  # m/s
         dataName = 'vel'
-    else:
+    if not flagAltitude:
         # energy norms and offsets
         offset = 0 # TODO
         dataName = 'energy'
+    else: # x is energy, y is fpa
+        # dataName = "energy_fpa"
+        dataName = "velocity_fpa"
+        tau_common = np.linspace(0.0, 1.0, downsampleNum)**2
 
     # Load in runs 0 to 5000 from folder that are in mat files
     datas = []
@@ -160,26 +177,35 @@ def main():
 
     data_dict = {}
     data_mat = np.zeros((Nruns*len(dataPaths), downsampleNum))
-    if flagDownsample:
+    if flagDownsample and not flagAltitude:
         idx = np.linspace(0, tFind - 1, downsampleNum, dtype=int)
+    elif flagDownsample and flagAltitude:
+        idx = np.arange(downsampleNum)
     else:
         idx = np.linspace(0, tFind - 1, tFind, dtype=int)
+
     goodInds = []
     save_ind = 0
     labels = []
     for run in range(Nruns*len(dataPaths)):
         data = datas[run]
-        if cutoffFlag:
-            vel = data['x'][3, :tFind]
-            r = data['x'][0, :tFind]
-        else:
-            # Pad out the velocity and position data with the last value
-            if tFind < data['x'].shape[1]:
+
+        if not flagAltitude:
+            if cutoffFlag:
                 vel = data['x'][3, :tFind]
                 r = data['x'][0, :tFind]
             else:
-                vel = np.pad(data['x'][3, :], (0, tFind - data['x'].shape[1]), 'edge')
-                r = np.pad(data['x'][0, :], (0, tFind - data['x'].shape[1]), 'edge')
+                # Pad out the velocity and position data with the last value
+                if tFind < data['x'].shape[1]:
+                    vel = data['x'][3, :tFind]
+                    r = data['x'][0, :tFind]
+                else:
+                    vel = np.pad(data['x'][3, :], (0, tFind - data['x'].shape[1]), 'edge')
+                    r = np.pad(data['x'][0, :], (0, tFind - data['x'].shape[1]), 'edge')
+        else:
+            vel = data['x'][3, :]
+            r = data['x'][0, :]
+            fpa = data['x'][4, :]
 
         rp = data['rp']
 
@@ -197,13 +223,33 @@ def main():
 
         if flagEnergy:
             data = vel**2 / 2 - mu / r
+        elif flagAltitude:
+            energy = vel**2 / 2 - mu / r
+            alt = r - R_eq
+            # data_x = (energy - energy.min()) / (energy.max() - energy.min())
+            data_x = (vel - vel.min()) / (vel.max() - vel.min())
+            # data_y = vel / vel[0] 
+            data_y = fpa  # Already in radians so don't scale
+            # Np interp requires that the x values are increasing, but the energy is decreasing, so flip both x and y
+            data_x = data_x[::-1]
+            data_y = data_y[::-1]
+
+            sort_idx = np.argsort(data_x)
+            energy_sorted = data_x[sort_idx]
+            fpa_sorted = data_y[sort_idx]
+
+            # normed_data = np.interp(tau_common, data_x, data_y)
+            interp = PchipInterpolator(energy_sorted, fpa_sorted)
+            normed_data = interp(tau_common)
         else:
             data = vel
 
-        if flagScale:
-            normed_data = (data - offset) / norm
-        else:
-            normed_data = data
+        if not flagAltitude:
+            if flagScale:
+                normed_data = (data - offset) / norm
+            else:
+                normed_data = data
+
 
         data_dict[f'sample{save_ind}'] = {dataName: normed_data[idx].tolist(), 'label': label}
         data_mat[save_ind, :] = normed_data[idx]
@@ -220,7 +266,8 @@ def main():
     save_path = f'{savePath}/{tag}_{Nruns}_data_{suffix}.mat'
     savemat(save_path, {'data': data_mat})
 
-    n_train, n_test, n_val = 1024, 128, 128
+    # n_train, n_test, n_val = 1024, 128, 128
+    n_train, n_test, n_val = 800, 100, 100
     n_total = n_train + n_test + n_val
     if distributeFailureFlag:
         # Get 1024 training, 128 validation, and 128 test sample indices including ALL crashes and escapes proportionally distributed between the three sets and filling the rest with the captures
@@ -283,19 +330,36 @@ def main():
     with open(f'{savePath}/{tag}_{Nruns}_inds_{suffix}.json', "w") as f:
         json.dump(output, f, indent=2)
 
+    # Get axis labels depending on the data type
+    if dataName == 'vel':
+        x_label = 'Time step'
+        y_label = 'Velocity (m/s)'
+    elif dataName == 'energy':
+        x_label = 'Time step'
+        y_label = 'Energy (m^2/s^2)'
+    elif dataName == 'altitude_energy':
+        x_label = 'Energy (normalized)'
+        y_label = 'Altitude (normalized)'
+    elif dataName == 'energy_fpa':
+        x_label = 'Energy (normalized)'
+        y_label = 'Flight Path Angle (radians)'
+    elif dataName == 'velocity_fpa':
+        x_label = 'Velocity (normalized)'
+        y_label = 'Flight Path Angle (radians)'
+
     # Plot the data
     sns.set_theme('notebook', style='whitegrid', palette='Paired', rc={"lines.linewidth": 2.5, "font.size": 10, "axes.titlesize": 12, "axes.labelsize": 12,'xtick.labelsize': 9.0, 'ytick.labelsize': 9.0, "font.family": "serif"})
     fig, ax = plt.subplots()
     for ii, run in enumerate(goodInds):
         label = data_dict[f'sample{ii}']['label']
         color = f"C{label}"
-        ax.plot(data_mat[ii, :], color=color)
-    line1 = plt.Line2D([0], [0], color='C0', label='Capture')
-    line2 = plt.Line2D([0], [0], color='C1', label='Escape')
-    line3 = plt.Line2D([0], [0], color='C2', label='Crash')
+        ax.plot(data_mat[ii, :], color=color, marker='o', alpha=0.7)
+    line1 = plt.Line2D([0], [0], color='C0', label='Capture', marker='o')
+    line2 = plt.Line2D([0], [0], color='C1', label='Escape', marker='o')
+    line3 = plt.Line2D([0], [0], color='C2', label='Crash', marker='o')
     ax.legend(handles=[line1, line2, line3])
-    plt.ylabel(f'{r"Velocity (m/s)" if not flagEnergy else r"Energy (m$^2$/s$^2$)"}')
-    plt.xlabel('Time step')
+    plt.ylabel(y_label)
+    plt.xlabel(x_label)
     if flagEnergy:
         plt.hlines(0, 0, downsampleNum, colors='r', linestyles='dashed')
     plt.savefig(f'/Users/gracecalkins/Local_Documents/local_code/pipag_training/figs/{tag}_{Nruns}_data_{suffix}.png', dpi=300)
@@ -307,26 +371,26 @@ def main():
     for ii, run in enumerate(train_indices):
         label = data_dict[f'sample{ii}']['label']
         color = f"C{label}"
-        axs[0].plot(data_mat[ii, :], color=color)
+        axs[0].plot(data_mat[ii, :], color=color, alpha=0.7)
     axs[0].set_title('Training Data')
 
     for ii, run in enumerate(val_indices):
         label = data_dict[f'sample{ii}']['label']
         color = f"C{label}"
-        axs[1].plot(data_mat[ii, :], color=color)
+        axs[1].plot(data_mat[ii, :], color=color, alpha=0.7)
     axs[1].set_title('Validation Data')
     axs[1].set_yticklabels([])
 
     for ii, run in enumerate(test_indices):
         label = data_dict[f'sample{ii}']['label']
         color = f"C{label}"
-        axs[2].plot(data_mat[ii, :], color=color)
+        axs[2].plot(data_mat[ii, :], color=color, alpha=0.7)
     axs[2].set_title('Testing Data')
     axs[2].set_yticklabels([])
-    axs[0].set_ylabel(f'{r"Velocity (m/s)" if not flagEnergy else r"Energy (m$^2$/s$^2$)"}')
-    axs[0].set_xlabel('Time step')
-    axs[1].set_xlabel('Time step')
-    axs[2].set_xlabel('Time step')
+    axs[0].set_ylabel(y_label)
+    axs[0].set_xlabel(x_label)
+    axs[1].set_xlabel(x_label)
+    axs[2].set_xlabel(x_label)
     if flagEnergy:
         axs[0].hlines(0, 0, downsampleNum, colors='r', linestyles='dashed')
         axs[1].hlines(0, 0, downsampleNum, colors='r', linestyles='dashed')
