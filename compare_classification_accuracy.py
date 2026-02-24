@@ -29,8 +29,12 @@ def main():
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/1_near_escape_fnpag_2000_data_energy_scaled_downsampled_.json"
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/1_near_crash_fnpag_2000_data_energy_scaled_downsampled_.json"
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/1_near_escape_new_2000_data_energy_scaled_downsampled_.json"
-    inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/1_near_crash_new_2000_data_energy_scaled_downsampled_.json"
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/1_near_crash_new_2000_data_energy_scaled_downsampled_.json"
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/1_uniform_new_2000_data_energy_scaled_downsampled_.json"
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gumixture_1000_data_velocity_fpa_scaled_downsampled_.json"  # gu mixture training data dp = 1.5
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gaussian_dp2_1000_data_velocity_fpa_scaled_downsampled_.json"  # Gaussian dp = 2
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_studentsT_dp15_1000_data_velocity_fpa_scaled_downsampled_.json"  # students T, dp = 1.75, DOF = 4
+    inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gumixture_1000_data_energy_scaled_downsampled_.json"  # ENERGY, gu mixture training data dp = 1.5
 
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250514_182106_5_5'  # Combined data
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250512_200948_5_5'  # Uniform data
@@ -44,10 +48,10 @@ def main():
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_near_crash_new_20250601_065902_L5_C5_retrained'  # near crash retrained
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_near_escape_new_20250601_073224_L7_C3_retrained'  # near escape retrained
 
-    saveTag = 'crash_new'
+    saveTag = 'rev_gumixture_energy'  # tag to add to saved files
 
-    LDs = [4,5,6]  #[4,5,6]
-    NCs = [2,3,4,5,6]  #[2,3,4,5,6]
+    LDs = [5,6,7,8,9]  #[4,5,6]
+    NCs = [3,4,5,6,7,8]  #[2,3,4,5,6]
 
     # LDs = [5,6,7]  # Latent dimensions to test
     # NCs = [2,3,4,5,6]  # Number of clusters to test
@@ -99,8 +103,11 @@ def main():
                 # pattern = rf"^gmvae_near_escape_(20250527|20250528)_\d{{6}}_L{LD}_C{NC}$"
                 # pattern = rf"^gmvae_near_crash_(20250528|20250529)_\d{{6}}_L{LD}_C{NC}$"
                 # pattern = rf"^gmvae_near_escape_new_20250601_\d{{6}}_L{LD}_C{NC}$"
-                pattern = rf"^gmvae_near_crash_new_20250601_\d{{6}}_L{LD}_C{NC}$"
+                # pattern = rf"^gmvae_near_crash_new_20250601_\d{{6}}_L{LD}_C{NC}$"
                 # pattern = rf"^gmvae_uniform_new_20250601_\d{{6}}_L{LD}_C{NC}$"
+                # pattern = rf"^gmvae_rev_gu_mixture_(20260216|20260217)_\d{{6}}_L{LD}_C{NC}$"
+                # pattern = rf"^gmvae_rev_gu_mixture_(20260216|20260217)_\d{{6}}_L{LD}_C{NC}_24_18_12$"
+                pattern = rf"^gmvae_rev_gu_mixture_energy_(20260217|20260218)_\d{{6}}_L{LD}_C{NC}$"
                 folder_path = [
                     f for f in os.listdir(basePath)
                     if os.path.isdir(os.path.join(basePath, f)) and re.fullmatch(pattern, f)
@@ -110,13 +117,15 @@ def main():
                     folder_path = os.path.join(basePath, folder_path[0])
                 else:
                     print(f"LD {LD}, NC {NC} → no match")
+                    continue
 
 
             # Get the file string after "encoder"
             suffix = [file for file in os.listdir(folder_path) if file.startswith("encoder")][0][8:-3]
+            print(suffix)
 
             # Load in decoder and params
-            encoder, params, em_reg = loadEncoderAndParams(folder_path, suffix, data_dim=64, latent_dim=LD, hidden_dims=[32,16], oldFlag=False)  # type: ignore
+            encoder, params, em_reg = loadEncoderAndParams(folder_path, suffix, data_dim=36, latent_dim=LD, hidden_dims=[30,20,10], oldFlag=False)  # type: ignore
 
             # For each GMVAE, figure out which mixands describe which clusters as which data cluster has the smallest mahalanobis distance from each cluster mean / variance in latent space
             # run all samples through encoder
@@ -236,12 +245,12 @@ def main():
                     else:
                         ax.plot(samples[ii], color='C2', alpha=0.5)
                 else:  # Crash
-                    if labels[ii] != labels[ii]:
+                    if pred_labels[ii] != labels[ii]:
                         ax.plot(samples[ii], color='C5', alpha=0.5)
                     else:
                         ax.plot(samples[ii], color='C4', alpha=0.5)
-            ax.set_ylabel('Scaled Energy')
-            ax.set_xlabel('Downsample Index')
+            ax.set_ylabel('Y Input')
+            ax.set_xlabel('X Input')
             ax.plot([], color='C0', label='Correctly Predicted Capture')
             ax.plot([], color='C2', label='Correctly Predicted Escape')
             ax.plot([], color='C4', label='Correctly Predicted Impact')
@@ -272,9 +281,9 @@ def main():
                     else:
                         axs[1].plot(samples[ii], color='C2', alpha=0.5)
                 else:  # Crash
-                    if labels[ii] == 0:  # Falsely assigned to capture
+                    if pred_labels[ii] == 0:  # Falsely assigned to capture
                         axs[2].plot(samples[ii], color='C10', alpha=0.5)
-                    elif labels[ii] == 1:  # Falsely assigned to escape
+                    elif pred_labels[ii] == 1:  # Falsely assigned to escape
                         axs[2].plot(samples[ii], color='C11', alpha=0.5)
                     else:
                         axs[2].plot(samples[ii], color='C4', alpha=0.5)
@@ -289,8 +298,8 @@ def main():
             axs[2].plot([], color='C10', label='Assigned to Capture')
             axs[2].plot([], color='C11', label='Assigned to Escape')
             for ax in axs:
-                ax.set_ylabel('Scaled Energy')
-                ax.set_xlabel('Downsample Index')
+                ax.set_ylabel('Y Input')
+                ax.set_xlabel('X Input')
                 ax.axhline(0, color='black', linestyle='--')
                 ax.legend(loc='lower left')
             plt.suptitle(f"LD: {LD}, NC: {NC}")
@@ -339,7 +348,7 @@ def main():
 
 
         # Print capture percent misassignment
-        print("\\begin{table}{H}")
+        print("\\begin{table}[H]")
         print("\\centering")
         print("\\caption{Predicted Capture Misassignments}")
         print("\\begin{tabular}{l" + "c" * len(NCs) + "}")
@@ -353,7 +362,7 @@ def main():
         print("\\end{table}")
 
         # Print escape percent misassignment
-        print("\\begin{table}{H}")
+        print("\\begin{table}[H]")
         print("\\centering")
         print("\\caption{Predicted Escape Misassignments}")
         print("\\begin{tabular}{l" + "c" * len(NCs) + "}")
@@ -367,7 +376,7 @@ def main():
         print("\\end{table}")
 
         # Print crash percent misassignment
-        print("\\begin{table}{H}")
+        print("\\begin{table}[H]")
         print("\\centering")
         print("\\caption{Predicted Crash Misassignments}")
         print("\\begin{tabular}{l" + "c" * len(NCs) + "}")
@@ -381,7 +390,7 @@ def main():
         print("\\end{table}")
 
         # Print average percent misassignment
-        print("\\begin{table}{H}")
+        print("\\begin{table}[H]")
         print("\\centering")
         print("\\caption{Average Misassignments}")
         print("\\begin{tabular}{l" + "c" * len(NCs) + "}")

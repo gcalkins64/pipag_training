@@ -132,18 +132,52 @@ def main():
     # norm = 142649636.16317078
 
     # Revision GU mixture p = 0.3, 2-4 sigma tails 
+    # removeFlags = []
+    # tag = 'rev_gumixture'
+    # dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260214093453_rev_fnpag_15_gumixture_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.5_GMVAEFalse']
+    # tFind = 1501
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    # norm = 141993685.97498
+
+    # Revision Gaussian dp = 2, for testing
+    # removeFlags = []
+    # tag = 'rev_gaussian_dp2'
+    # dataPaths = [
+    #     '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260216125142_rev_fnpag_2_gaussian_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP2_GMVAEFalse']
+    # tFind = 1501
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    # norm = 1
+    # # norm = 141993685.97498 # for energy
+
+    # Revision Student's T, DOF = 4, dp = 1.75
+    # removeFlags = []
+    # tag = 'rev_studentsT_dp15'
+    # dataPaths = [
+    #     '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260212203623_rev_fnpag_175_studentst_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.75_GMVAEFalse']
+    # tFind = 1501
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    # # norm = 141993685.97498
+    # norm = 1
+
+    # Revision GU Mixture biased more downwards dp = 1.5
     removeFlags = []
-    tag = 'rev_gumixture'
-    dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260214093453_rev_fnpag_15_gumixture_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.5_GMVAEFalse']
+    tag = 'rev_gumixture_dp15_more_downwards'
+    dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260217170547_rev_fnpag_15_gumixture_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.5_GMVAEFalse']
     tFind = 1501
     cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
     distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
-    norm = 1
+    norm = 141984969.09570745
+    # norm = 1
+
 
     flagDownsample = True
-    flagEnergy = False  # if true, use energy, if false, use velocity
+    flagEnergy = True  # if true, use energy, if false, use velocity
     flagScale = True # if true, scale the data, if false, don't scale
-    flagAltitude = True  # if True, use altitude as the y axis, and energy as the x-axis and scale everything to be equidistant in altitude
+    flagAltitude = False  # if True, use altitude as the y axis, and energy as the x-axis and scale everything to be equidistant in altitude
+    flagUnevenSample = True  # Add more energy points around the gradient
 
     if flagDownsample:
         # downsampleNum = 64. For orignal paper
@@ -178,7 +212,30 @@ def main():
     data_dict = {}
     data_mat = np.zeros((Nruns*len(dataPaths), downsampleNum))
     if flagDownsample and not flagAltitude:
-        idx = np.linspace(0, tFind - 1, downsampleNum, dtype=int)
+        if not flagUnevenSample:  # Downsample equally in time
+            idx = np.linspace(0, tFind - 1, downsampleNum, dtype=int)
+        else:
+            # Full time vector
+            t = np.linspace(0, tFind - 1, tFind)
+
+            # Center of desired cluster
+            center = 250.0
+
+            # Controls width of concentration (larger = broader)
+            width = 100
+
+            # Weighting function (Gaussian bump)
+            weights = 1.0 + 3.0 * np.exp(-0.5 * ((t - center) / width) ** 2)
+
+            # Build cumulative distribution
+            cdf = np.cumsum(weights)
+            cdf /= cdf[-1]
+
+            # Uniform samples in probability space
+            u = np.linspace(0, 1, downsampleNum)
+
+            # Invert CDF to get indices
+            idx = np.searchsorted(cdf, u)
     elif flagDownsample and flagAltitude:
         idx = np.arange(downsampleNum)
     else:
@@ -335,7 +392,7 @@ def main():
         x_label = 'Time step'
         y_label = 'Velocity (m/s)'
     elif dataName == 'energy':
-        x_label = 'Time step'
+        x_label = 'Sample Index'
         y_label = 'Energy (m^2/s^2)'
     elif dataName == 'altitude_energy':
         x_label = 'Energy (normalized)'
