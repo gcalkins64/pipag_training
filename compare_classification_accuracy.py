@@ -14,6 +14,49 @@ import re
 import joblib  # safer and more compact than pickle for sklearn models
 warnings.simplefilter("ignore", FutureWarning)
 
+def plot_table_heatmap(table, LDs, NCs, title, save_path=None, cmap="viridis", percent=False):
+    """
+    Plot a heatmap of a 2D table indexed by LDs (rows) and NCs (columns).
+
+    table      : 2D numpy array (len(LDs) x len(NCs))
+    LDs        : list of latent dimensions (row labels)
+    NCs        : list of cluster counts (column labels)
+    title      : title of the plot
+    save_path  : if provided, saves figure to this path
+    cmap       : matplotlib colormap
+    percent    : if True, formats annotations as percentages
+    """
+    fig, ax = plt.subplots(figsize=(1*len(NCs)+1, 1.0*len(LDs)+1))
+
+    if percent:
+        annot_data = np.round(table * 100, 2)
+        fmt = ".2f"
+    else:
+        annot_data = np.round(table, 4)
+        fmt = ".4f"
+
+    sns.heatmap(
+        table if not percent else table * 100,
+        annot=annot_data,
+        fmt=fmt,
+        cmap=cmap,
+        xticklabels=NCs,
+        yticklabels=LDs,
+        cbar_kws={'label': 'Percent (%)' if percent else 'Value'},
+        ax=ax
+    )
+
+    ax.set_xlabel("Number of Clusters (NC)")
+    ax.set_ylabel("Latent Dimension (LD)")
+    ax.set_title(title)
+    plt.tight_layout()
+
+    if save_path is not None:
+        plt.savefig(save_path, dpi=300)
+
+    # plt.show()
+    plt.close(fig)
+
 def main():
     seabornSettings()
     sns.set_palette("Paired")
@@ -34,7 +77,8 @@ def main():
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gumixture_1000_data_velocity_fpa_scaled_downsampled_.json"  # gu mixture training data dp = 1.5
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gaussian_dp2_1000_data_velocity_fpa_scaled_downsampled_.json"  # Gaussian dp = 2
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_studentsT_dp15_1000_data_velocity_fpa_scaled_downsampled_.json"  # students T, dp = 1.75, DOF = 4
-    inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gumixture_1000_data_energy_scaled_downsampled_.json"  # ENERGY, gu mixture training data dp = 1.5
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gumixture_1000_data_energy_scaled_downsampled_.json"  # ENERGY, gu mixture training data dp = 1.5
+    inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gumixture_dp15_more_downwards_1000_data_energy_scaled_downsampled_.json"  # Energy, gu mixture, dp = 1.5, FPA biased downwards to get more crashes
 
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250514_182106_5_5'  # Combined data
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250512_200948_5_5'  # Uniform data
@@ -48,13 +92,20 @@ def main():
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_near_crash_new_20250601_065902_L5_C5_retrained'  # near crash retrained
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_near_escape_new_20250601_073224_L7_C3_retrained'  # near escape retrained
 
-    saveTag = 'rev_gumixture_energy'  # tag to add to saved files
+    saveTag = 'rev_gumixture_energy_biased_down'  # tag to add to saved files
 
-    LDs = [5,6,7,8,9]  #[4,5,6]
-    NCs = [3,4,5,6,7,8]  #[2,3,4,5,6]
+    LDs = [3,4,5,6,7,8,9]  #[4,5,6]
+    NCs = [3,4,5,6,7,8,9]  #[2,3,4,5,6]
+    # hds = [30,20,10]
+    hds = [24,18,12]
+    # hds = [36,24,12]
 
     # LDs = [5,6,7]  # Latent dimensions to test
     # NCs = [2,3,4,5,6]  # Number of clusters to test
+
+    figPath = os.path.join("/Users/gracecalkins/Local_Documents/local_code/pipag_training/figs/", f"gmvae_comparison_{saveTag}_{hds[0]}")
+    if not os.path.exists(figPath):
+        os.makedirs(figPath)
 
     # load in json
     with open(inputDataPath, 'r') as f:
@@ -107,16 +158,16 @@ def main():
                 # pattern = rf"^gmvae_uniform_new_20250601_\d{{6}}_L{LD}_C{NC}$"
                 # pattern = rf"^gmvae_rev_gu_mixture_(20260216|20260217)_\d{{6}}_L{LD}_C{NC}$"
                 # pattern = rf"^gmvae_rev_gu_mixture_(20260216|20260217)_\d{{6}}_L{LD}_C{NC}_24_18_12$"
-                pattern = rf"^gmvae_rev_gu_mixture_energy_(20260217|20260218)_\d{{6}}_L{LD}_C{NC}$"
+                pattern = rf"^gmvae_rev_gu_mixture_energy_biased_down_\d{{8}}_\d{{6}}_L{LD}_C{NC}_{hds[0]}_{hds[1]}_{hds[2]}$"
                 folder_path = [
                     f for f in os.listdir(basePath)
                     if os.path.isdir(os.path.join(basePath, f)) and re.fullmatch(pattern, f)
                 ]
                 if folder_path:
-                    print(f"LD {LD}, NC {NC} → {folder_path}")
+                    print(f"🍀LD {LD}, NC {NC} → {folder_path}")
                     folder_path = os.path.join(basePath, folder_path[0])
                 else:
-                    print(f"LD {LD}, NC {NC} → no match")
+                    print(f"🚨LD {LD}, NC {NC} → no match")
                     continue
 
 
@@ -125,7 +176,7 @@ def main():
             print(suffix)
 
             # Load in decoder and params
-            encoder, params, em_reg = loadEncoderAndParams(folder_path, suffix, data_dim=36, latent_dim=LD, hidden_dims=[30,20,10], oldFlag=False)  # type: ignore
+            encoder, params, em_reg = loadEncoderAndParams(folder_path, suffix, data_dim=36, latent_dim=LD, hidden_dims=hds, oldFlag=False)  # type: ignore
 
             # For each GMVAE, figure out which mixands describe which clusters as which data cluster has the smallest mahalanobis distance from each cluster mean / variance in latent space
             # run all samples through encoder
@@ -172,7 +223,7 @@ def main():
 
             encoded_samples = np.squeeze(np.array([t.detach().numpy() for t in encoded_samples]))
             names = ['Capture', 'Escape', 'Impact']
-            plot_latent_space_with_clusters(encoded_samples, labels, NC, params['mu_c'], params['logsigmasq_c'], os.path.join(folder_path, f'predicted_latent_clusters_{saveTag}_LD{LD}_NC{NC}'), names, ['C1', 'C3', 'C5'], cluster_labels, cluster_colors, dpi=300, titleTag=f" LD: {LD}, NC: {NC}")
+            plot_latent_space_with_clusters(encoded_samples, labels, NC, params['mu_c'], params['logsigmasq_c'], os.path.join(folder_path, f'predicted_latent_clusters_{saveTag}_LD{LD}_NC{NC}'), names, ['C1', 'C3', 'C5'], cluster_labels, cluster_colors, dpi=300, titleTag=f" LD: {LD}, NC: {NC}", legendFlag=False, figSize=(4,4))
             # plt.show()
 
             # compute true cluster probability by summing probability for all mixands in that cluster
@@ -403,6 +454,72 @@ def main():
         print("\\bottomrule")
         print("\\end{tabular}")
         print("\\end{table}")
+
+        plot_table_heatmap(
+            false_capture_percent,
+            LDs,
+            NCs,
+            f"{hds[0]}x{hds[1]}x{hds[2]}: False Capture Assignment (%)",
+            save_path=os.path.join(figPath, f"heatmap_false_capture_{saveTag}_{hds[0]}.png"),
+            cmap="Blues",
+            percent=True
+        )
+
+        plot_table_heatmap(
+            false_escape_percent,
+            LDs,
+            NCs,
+            f"{hds[0]}x{hds[1]}x{hds[2]}: False Escape Assignment (%)",
+            save_path=os.path.join(figPath, f"heatmap_false_escape_{saveTag}_{hds[0]}.png"),
+            cmap="Greens",
+            percent=True
+        )
+
+        plot_table_heatmap(
+            false_crash_percent,
+            LDs,
+            NCs,
+            f"{hds[0]}x{hds[1]}x{hds[2]}: False Impact Assignment (%)",
+            save_path=os.path.join(figPath, f"heatmap_false_crash_{saveTag}_{hds[0]}.png"),
+            cmap="Reds",
+            percent=True
+        )
+
+        avg_false = np.nanmean(
+            np.stack([false_capture_percent,
+                      false_escape_percent,
+                      false_crash_percent]),
+            axis=0
+        )
+
+        plot_table_heatmap(
+            avg_false,
+            LDs,
+            NCs,
+            f"{hds[0]}x{hds[1]}x{hds[2]}: Average Misassignment (%)",
+            save_path=os.path.join(figPath, f"heatmap_avg_false_{saveTag}_{hds[0]}.png"),
+            cmap="flare",
+            percent=True
+        )
+
+        # ----------------------------------------
+        # Failure-only weighted misassignment
+        # ----------------------------------------
+
+        failure_prob = escape_prob + impact_prob
+
+        failure_weighted = (escape_prob * false_escape_percent + impact_prob * false_crash_percent) / failure_prob
+
+        plot_table_heatmap(
+            failure_weighted,
+            LDs,
+            NCs,
+            f"{hds[0]}x{hds[1]}x{hds[2]}: Failure Misassignment (%)",
+            save_path=os.path.join(figPath, f"heatmap_failure_only_{saveTag}_{hds[0]}.png"),
+            cmap="managua",
+            percent=True
+        )
+
 
 
 if __name__ == "__main__":

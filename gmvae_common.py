@@ -38,12 +38,12 @@ def plot_latent_space_with_clusters(samples, labels, num_clusters, cluster_means
         cluster_stds_ = np.sqrt(s)
         cluster_angles_ = np.arctan(u[:, 0, 1] / u[:, 0, 0])
 
-    fig, ax = plt.subplots(figsize=(6.5,4))
+    fig, ax = plt.subplots(figsize=(6.5, 4))
     markers = ['o', '^', "s", "d", "+", "*", "v", "x", "H", "p", "D", "P", "X"]
     # assert(len(markers) >= len(text_labels))
 
     unique_labels = torch.unique(labels)
-    print(len(unique_labels))
+    # print(len(unique_labels))
     for i in range(len(unique_labels)):
         # print(i)
         this_label = unique_labels[i]
