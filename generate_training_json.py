@@ -143,35 +143,95 @@ def main():
     # Revision Gaussian dp = 2, for testing
     # removeFlags = []
     # tag = 'rev_gaussian_dp2'
+    # # dataPaths = [
+    # #     '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260216125142_rev_fnpag_2_gaussian_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP2_GMVAEFalse']
     # dataPaths = [
-    #     '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260216125142_rev_fnpag_2_gaussian_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP2_GMVAEFalse']
+    #     '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260225120100_rev_fnpag_2_gaussian_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP2_GMVAEFalse_LHSTrue']  # New run with LHS
     # tFind = 1501
     # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
     # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
-    # norm = 1
-    # # norm = 141993685.97498 # for energy
+    # norm =  141984969.09570745  # use same norm as primary training data
 
-    # Revision Student's T, DOF = 4, dp = 1.75
-    # removeFlags = []
-    # tag = 'rev_studentsT_dp15'
-    # dataPaths = [
-    #     '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260212203623_rev_fnpag_175_studentst_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.75_GMVAEFalse']
-    # tFind = 1501
-    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
-    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
-    # # norm = 141993685.97498
-    # norm = 1
-
-    # Revision GU Mixture biased more downwards dp = 1.5
+    # # Revision Student's T, DOF = 4, dp = 1.75
     removeFlags = []
-    tag = 'rev_gumixture_dp15_more_downwards'
-    dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260217170547_rev_fnpag_15_gumixture_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.5_GMVAEFalse']
+    tag = 'rev_studentsT_dp175'
+    dataPaths = [
+        '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260212203623_rev_fnpag_175_studentst_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.75_GMVAEFalse']
     tFind = 1501
     cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
     distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
     norm = 141984969.09570745
     # norm = 1
 
+    # Revision Student's T, DOF = 4, dp = 1.5
+    # removeFlags = []
+    # tag = 'rev_studentsT_dp15'
+    # dataPaths = [
+    #     '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260212185146_rev_fnpag_15_studentst_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.5_GMVAEFalse']
+    # tFind = 1501
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    # norm = 141984969.09570745
+    # # norm = 1
+
+    # # Revision GU Mixture biased more downwards dp = 1.5
+    # removeFlags = []
+    # tag = 'rev_gumixture_dp15_more_downwards'
+    # dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260217170547_rev_fnpag_15_gumixture_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.5_GMVAEFalse']
+    # tFind = 1501
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    # norm = 141984969.09570745
+    # norm = 1
+
+    # Revision Gaussian, dp = 1.5
+    # removeFlags = []
+    # tag = 'rev_gaussian_dp15'
+    # dataPaths = [
+    #     '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260214104719_rev_fnpag_15_gaussian_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.5_GMVAEFalse']
+    # tFind = 1501
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    # norm = 141984969.09570745  # use same norm as primary training data
+
+    # Revision Gaussian, dp = 1.6
+    # removeFlags = []
+    # tag = 'rev_gaussian_dp16'
+    # dataPaths = [
+    #     '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260224150214_rev_fnpag_16_gaussian_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.6_GMVAEFalse_LHSFalse']
+    # tFind = 1501
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    # norm = 141984969.09570745  # use same norm as primary training data
+
+    # Revision Gaussian, dp = 1.7
+    # removeFlags = []
+    # tag = 'rev_gaussian_dp17'
+    # dataPaths = [
+    #     '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260224155525_rev_fnpag_17_gaussian_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.7_GMVAEFalse_LHSFalse']
+    # tFind = 1501
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    # norm = 141984969.09570745  # use same norm as primary training data
+
+    # # Revision Gaussian, dp = 1.8
+    # removeFlags = []
+    # tag = 'rev_gaussian_dp18'
+    # dataPaths = [
+    #     '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260224165305_rev_fnpag_18_gaussian_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.8_GMVAEFalse_LHSFalse']
+    # tFind = 1501
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    # norm = 141984969.09570745  # use same norm as primary training data
+
+    # # Revision Gaussian, dp = 1.9
+    # removeFlags = []
+    # tag = 'rev_gaussian_dp19'
+    # dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260224174704_rev_fnpag_19_gaussian_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.9_GMVAEFalse_LHSFalse']
+    # tFind = 1501
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    # norm = 141984969.09570745  # use same norm as primary training data
 
     flagDownsample = True
     flagEnergy = True  # if true, use energy, if false, use velocity

@@ -74,11 +74,20 @@ def main():
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/1_near_escape_new_2000_data_energy_scaled_downsampled_.json"
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/1_near_crash_new_2000_data_energy_scaled_downsampled_.json"
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/1_uniform_new_2000_data_energy_scaled_downsampled_.json"
+
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gumixture_1000_data_velocity_fpa_scaled_downsampled_.json"  # gu mixture training data dp = 1.5
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gaussian_dp2_1000_data_velocity_fpa_scaled_downsampled_.json"  # Gaussian dp = 2
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_studentsT_dp15_1000_data_velocity_fpa_scaled_downsampled_.json"  # students T, dp = 1.75, DOF = 4
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gumixture_1000_data_energy_scaled_downsampled_.json"  # ENERGY, gu mixture training data dp = 1.5
-    inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gumixture_dp15_more_downwards_1000_data_energy_scaled_downsampled_.json"  # Energy, gu mixture, dp = 1.5, FPA biased downwards to get more crashes
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gumixture_dp15_more_downwards_1000_data_energy_scaled_downsampled_.json"  # Energy, gu mixture, dp = 1.5, FPA biased downwards to get more crashes
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gaussian_dp15_1000_data_energy_scaled_downsampled_.json"  # Energy, gaussian, DP = 1.5
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gaussian_dp16_1000_data_energy_scaled_downsampled_.json"  # Energy, gaussian, DP = 1.6
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gaussian_dp17_1000_data_energy_scaled_downsampled_.json"  # Energy, gaussian, DP = 1.7
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gaussian_dp18_1000_data_energy_scaled_downsampled_.json"  # Energy, gaussian, DP = 1.8
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gaussian_dp19_1000_data_energy_scaled_downsampled_.json"  # Energy, gaussian, DP = 1.9
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gaussian_dp2_1000_data_energy_scaled_downsampled_.json"  # Energy, gaussian, DP = 2
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_studentsT_dp175_1000_data_energy_scaled_downsampled_.json"  # dp = 1.75 students T, DOF = 4
+    inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_studentsT_dp15_1000_data_energy_scaled_downsampled_.json"  # dp = 1.5 students T, DOF = 4
 
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250514_182106_5_5'  # Combined data
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250512_200948_5_5'  # Uniform data
@@ -92,13 +101,14 @@ def main():
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_near_crash_new_20250601_065902_L5_C5_retrained'  # near crash retrained
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_near_escape_new_20250601_073224_L7_C3_retrained'  # near escape retrained
 
-    saveTag = 'rev_gumixture_energy_biased_down'  # tag to add to saved files
+    saveTag = 'rev_gumixture_energy_biased_down_eval_studentst_15'  # tag to add to saved files
+    saveLoopFigs = False  # Whether to save the figures within the loop
 
     LDs = [3,4,5,6,7,8,9]  #[4,5,6]
     NCs = [3,4,5,6,7,8,9]  #[2,3,4,5,6]
     # hds = [30,20,10]
-    hds = [24,18,12]
-    # hds = [36,24,12]
+    # hds = [24,18,12]
+    hds = [36,24,12]
 
     # LDs = [5,6,7]  # Latent dimensions to test
     # NCs = [2,3,4,5,6]  # Number of clusters to test
@@ -223,7 +233,8 @@ def main():
 
             encoded_samples = np.squeeze(np.array([t.detach().numpy() for t in encoded_samples]))
             names = ['Capture', 'Escape', 'Impact']
-            plot_latent_space_with_clusters(encoded_samples, labels, NC, params['mu_c'], params['logsigmasq_c'], os.path.join(folder_path, f'predicted_latent_clusters_{saveTag}_LD{LD}_NC{NC}'), names, ['C1', 'C3', 'C5'], cluster_labels, cluster_colors, dpi=300, titleTag=f" LD: {LD}, NC: {NC}", legendFlag=False, figSize=(4,4))
+            if saveLoopFigs:
+                plot_latent_space_with_clusters(encoded_samples, labels, NC, params['mu_c'], params['logsigmasq_c'], os.path.join(folder_path, f'predicted_latent_clusters_{saveTag}_LD{LD}_NC{NC}'), names, ['C1', 'C3', 'C5'], cluster_labels, cluster_colors, dpi=300, titleTag=f" LD: {LD}, NC: {NC}", legendFlag=False, figSize=(4,4))
             # plt.show()
 
             # compute true cluster probability by summing probability for all mixands in that cluster
@@ -282,81 +293,83 @@ def main():
             false_escape_percent[ll, nn] = false_assignment_escape_percentage
             false_crash_percent[ll, nn] = false_assignment_crash_percentage
 
-            # Plot input data energy colored by assigned cluster (pred_label)
-            fig, ax = plt.subplots()
-            for ii in range(Nsamples):
-                if labels[ii] == 0:  # Capture
-                    if pred_labels[ii] != labels[ii]:
-                        ax.plot(samples[ii], color='C1', alpha=0.5)
-                    else:
-                        ax.plot(samples[ii], color='C0', alpha=0.5)
-                elif labels[ii] == 1:  # Escape
-                    if pred_labels[ii] != labels[ii]:
-                        ax.plot(samples[ii], color='C3', alpha=0.5)
-                    else:
-                        ax.plot(samples[ii], color='C2', alpha=0.5)
-                else:  # Crash
-                    if pred_labels[ii] != labels[ii]:
-                        ax.plot(samples[ii], color='C5', alpha=0.5)
-                    else:
-                        ax.plot(samples[ii], color='C4', alpha=0.5)
-            ax.set_ylabel('Y Input')
-            ax.set_xlabel('X Input')
-            ax.plot([], color='C0', label='Correctly Predicted Capture')
-            ax.plot([], color='C2', label='Correctly Predicted Escape')
-            ax.plot([], color='C4', label='Correctly Predicted Impact')
-            ax.plot([], color='C1', label='Incorrectly Predicted Capture')
-            ax.plot([], color='C3', label='Incorrectly Predicted Escape')
-            ax.plot([], color='C5', label='Incorrectly Predicted Impact')
-            ax.axhline(0, color='black', linestyle='--')
-            ax.legend(loc='lower left')
-            plt.title(f"LD: {LD}, NC: {NC}")
-            plt.tight_layout()
-            plt.savefig(os.path.join(folder_path, f"predicted_clusters_{saveTag}_LD{LD}_NC{NC}.png"), dpi=300)
-            # plt.show()
 
-            fig, axs = plt.subplots(1,3, figsize=(12,4), sharey=True)
-            for ii in range(Nsamples):
-                if labels[ii] == 0:  # Capture
-                    if pred_labels[ii] == 1:  # Falsely assigned to escape
-                        axs[0].plot(samples[ii], color='C6', alpha=0.5)
-                    elif pred_labels[ii] == 2:  # Falsely assigned to impact
-                        axs[0].plot(samples[ii], color='C7', alpha=0.5)
-                    else:
-                        axs[0].plot(samples[ii], color='C0', alpha=0.5)
-                elif labels[ii] == 1:  # Escape
-                    if pred_labels[ii] == 0:  # Falsely assigned to capture
-                        axs[1].plot(samples[ii], color='C8', alpha=0.5)
-                    elif pred_labels[ii] == 2:  # Falsely assigned to impact
-                        axs[1].plot(samples[ii], color='C9', alpha=0.5)
-                    else:
-                        axs[1].plot(samples[ii], color='C2', alpha=0.5)
-                else:  # Crash
-                    if pred_labels[ii] == 0:  # Falsely assigned to capture
-                        axs[2].plot(samples[ii], color='C10', alpha=0.5)
-                    elif pred_labels[ii] == 1:  # Falsely assigned to escape
-                        axs[2].plot(samples[ii], color='C11', alpha=0.5)
-                    else:
-                        axs[2].plot(samples[ii], color='C4', alpha=0.5)
-
-            axs[0].plot([], color='C0', label='Correctly Predicted Capture')
-            axs[0].plot([], color='C6', label='Assigned to Escape')
-            axs[0].plot([], color='C7', label='Assigned to Impact')
-            axs[1].plot([], color='C2', label='Correctly Predicted Escape')
-            axs[1].plot([], color='C8', label='Assigned to Capture')
-            axs[1].plot([], color='C9', label='Assigned to Impact')
-            axs[2].plot([], color='C4', label='Correctly Predicted Impact')
-            axs[2].plot([], color='C10', label='Assigned to Capture')
-            axs[2].plot([], color='C11', label='Assigned to Escape')
-            for ax in axs:
+            if saveLoopFigs:
+                # Plot input data energy colored by assigned cluster (pred_label)
+                fig, ax = plt.subplots()
+                for ii in range(Nsamples):
+                    if labels[ii] == 0:  # Capture
+                        if pred_labels[ii] != labels[ii]:
+                            ax.plot(samples[ii], color='C1', alpha=0.5)
+                        else:
+                            ax.plot(samples[ii], color='C0', alpha=0.5)
+                    elif labels[ii] == 1:  # Escape
+                        if pred_labels[ii] != labels[ii]:
+                            ax.plot(samples[ii], color='C3', alpha=0.5)
+                        else:
+                            ax.plot(samples[ii], color='C2', alpha=0.5)
+                    else:  # Crash
+                        if pred_labels[ii] != labels[ii]:
+                            ax.plot(samples[ii], color='C5', alpha=0.5)
+                        else:
+                            ax.plot(samples[ii], color='C4', alpha=0.5)
                 ax.set_ylabel('Y Input')
                 ax.set_xlabel('X Input')
+                ax.plot([], color='C0', label='Correctly Predicted Capture')
+                ax.plot([], color='C2', label='Correctly Predicted Escape')
+                ax.plot([], color='C4', label='Correctly Predicted Impact')
+                ax.plot([], color='C1', label='Incorrectly Predicted Capture')
+                ax.plot([], color='C3', label='Incorrectly Predicted Escape')
+                ax.plot([], color='C5', label='Incorrectly Predicted Impact')
                 ax.axhline(0, color='black', linestyle='--')
                 ax.legend(loc='lower left')
-            plt.suptitle(f"LD: {LD}, NC: {NC}")
-            plt.tight_layout()
-            plt.savefig(os.path.join(folder_path, f"breakout_predicted_clusters_{saveTag}_LD{LD}_NC{NC}.png"), dpi=300)
-            # plt.show()
+                plt.title(f"LD: {LD}, NC: {NC}")
+                plt.tight_layout()
+                plt.savefig(os.path.join(folder_path, f"predicted_clusters_{saveTag}_LD{LD}_NC{NC}.png"), dpi=300)
+                # plt.show()
+
+                fig, axs = plt.subplots(1,3, figsize=(12,4), sharey=True)
+                for ii in range(Nsamples):
+                    if labels[ii] == 0:  # Capture
+                        if pred_labels[ii] == 1:  # Falsely assigned to escape
+                            axs[0].plot(samples[ii], color='C6', alpha=0.5)
+                        elif pred_labels[ii] == 2:  # Falsely assigned to impact
+                            axs[0].plot(samples[ii], color='C7', alpha=0.5)
+                        else:
+                            axs[0].plot(samples[ii], color='C0', alpha=0.5)
+                    elif labels[ii] == 1:  # Escape
+                        if pred_labels[ii] == 0:  # Falsely assigned to capture
+                            axs[1].plot(samples[ii], color='C8', alpha=0.5)
+                        elif pred_labels[ii] == 2:  # Falsely assigned to impact
+                            axs[1].plot(samples[ii], color='C9', alpha=0.5)
+                        else:
+                            axs[1].plot(samples[ii], color='C2', alpha=0.5)
+                    else:  # Crash
+                        if pred_labels[ii] == 0:  # Falsely assigned to capture
+                            axs[2].plot(samples[ii], color='C10', alpha=0.5)
+                        elif pred_labels[ii] == 1:  # Falsely assigned to escape
+                            axs[2].plot(samples[ii], color='C11', alpha=0.5)
+                        else:
+                            axs[2].plot(samples[ii], color='C4', alpha=0.5)
+
+                axs[0].plot([], color='C0', label='Correctly Predicted Capture')
+                axs[0].plot([], color='C6', label='Assigned to Escape')
+                axs[0].plot([], color='C7', label='Assigned to Impact')
+                axs[1].plot([], color='C2', label='Correctly Predicted Escape')
+                axs[1].plot([], color='C8', label='Assigned to Capture')
+                axs[1].plot([], color='C9', label='Assigned to Impact')
+                axs[2].plot([], color='C4', label='Correctly Predicted Impact')
+                axs[2].plot([], color='C10', label='Assigned to Capture')
+                axs[2].plot([], color='C11', label='Assigned to Escape')
+                for ax in axs:
+                    ax.set_ylabel('Y Input')
+                    ax.set_xlabel('X Input')
+                    ax.axhline(0, color='black', linestyle='--')
+                    ax.legend(loc='lower left')
+                plt.suptitle(f"LD: {LD}, NC: {NC}")
+                plt.tight_layout()
+                plt.savefig(os.path.join(folder_path, f"breakout_predicted_clusters_{saveTag}_LD{LD}_NC{NC}.png"), dpi=300)
+                # plt.show()
 
     if len(LDs) == 1 or len(NCs) == 1:
         print(f'"encoderPathX": "{folder_path}",')
@@ -455,6 +468,11 @@ def main():
         print("\\end{tabular}")
         print("\\end{table}")
 
+        # Save false escape, false crash, and false capture percent to a npy file
+        np.save(os.path.join(figPath, f"false_capture_percent_{saveTag}_{hds[0]}.npy"), false_capture_percent)
+        np.save(os.path.join(figPath, f"false_escape_percent_{saveTag}_{hds[0]}.npy"), false_escape_percent)
+        np.save(os.path.join(figPath, f"false_crash_percent_{saveTag}_{hds[0]}.npy"), false_crash_percent)
+
         plot_table_heatmap(
             false_capture_percent,
             LDs,
@@ -503,12 +521,57 @@ def main():
         )
 
         # ----------------------------------------
+        # Weighted average misassignment
+        # ----------------------------------------
+        # weighted_false = (
+        #         capture_prob * false_capture_percent +
+        #         escape_prob * false_escape_percent +
+        #         impact_prob * false_crash_percent
+        # )
+        # Stack errors and weights
+        errors = np.stack([false_capture_percent,false_escape_percent,false_crash_percent])
+
+        weights = np.array([capture_prob,escape_prob,impact_prob])[:, None, None]  # shape (3,1,1) for broadcasting
+
+        # Mask NaNs
+        valid_mask = ~np.isnan(errors)
+
+        # Zero-out invalid contributions
+        weighted_sum = np.nansum(errors * weights * valid_mask, axis=0)
+
+        # Renormalize weights where valid
+        effective_weight = np.sum(weights * valid_mask, axis=0)
+
+        weighted_false = weighted_sum / effective_weight
+
+        plot_table_heatmap(
+            weighted_false,
+            LDs,
+            NCs,
+            f"{hds[0]}x{hds[1]}x{hds[2]}: Weighted Misassignment (%)",
+            save_path=os.path.join(figPath, f"heatmap_weighted_false_{saveTag}_{hds[0]}.png"),
+            cmap="crest",
+            percent=True
+        )
+
+        # ----------------------------------------
         # Failure-only weighted misassignment
         # ----------------------------------------
 
-        failure_prob = escape_prob + impact_prob
+        # failure_prob = escape_prob + impact_prob
+        #
+        # failure_weighted = (escape_prob * false_escape_percent + impact_prob * false_crash_percent) / failure_prob
+        failure_errors = np.stack([false_escape_percent,false_crash_percent])
 
-        failure_weighted = (escape_prob * false_escape_percent + impact_prob * false_crash_percent) / failure_prob
+        failure_weights = np.array([escape_prob,impact_prob])[:, None, None]
+
+        valid_mask = ~np.isnan(failure_errors)
+
+        weighted_sum = np.nansum(failure_errors * failure_weights * valid_mask, axis=0)
+
+        effective_weight = np.sum(failure_weights * valid_mask, axis=0)
+
+        failure_weighted = weighted_sum / effective_weight
 
         plot_table_heatmap(
             failure_weighted,
@@ -520,6 +583,10 @@ def main():
             percent=True
         )
 
+        # print out the mean of the avergage, weighted average, and failure average over all LDs and NCs
+        print(f"Mean Average Misassignment: {np.nanmean(avg_false)*100:.4f}%")
+        print(f"Mean Weighted Misassignment: {np.nanmean(weighted_false)*100:.4f}%")
+        print(f"Mean Failure-Weighted Misassignment: {np.nanmean(failure_weighted)*100:.4f}%")
 
 
 if __name__ == "__main__":
