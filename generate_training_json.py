@@ -29,7 +29,7 @@ def main():
     savePath = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data'
     R_eq = 25559e3 # m, Uranus
     mu = 5.7940*10**15,  # m^3/s^2
-    Nruns = 1000
+    Nruns = 2500
 
     # Near Escape
     # removeFlags = [2]  # 0 capture, 1 escape, 2 crash
@@ -153,15 +153,15 @@ def main():
     # norm =  141984969.09570745  # use same norm as primary training data
 
     # # Revision Student's T, DOF = 4, dp = 1.75
-    removeFlags = []
-    tag = 'rev_studentsT_dp175'
-    dataPaths = [
-        '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260212203623_rev_fnpag_175_studentst_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.75_GMVAEFalse']
-    tFind = 1501
-    cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
-    distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
-    norm = 141984969.09570745
-    # norm = 1
+    # removeFlags = []
+    # tag = 'rev_studentsT_dp175'
+    # dataPaths = [
+    #     '/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260212203623_rev_fnpag_175_studentst_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.75_GMVAEFalse']
+    # tFind = 1501
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    # norm = 141984969.09570745
+    # # norm = 1
 
     # Revision Student's T, DOF = 4, dp = 1.5
     # removeFlags = []
@@ -174,7 +174,7 @@ def main():
     # norm = 141984969.09570745
     # # norm = 1
 
-    # # Revision GU Mixture biased more downwards dp = 1.5
+    # Revision GU Mixture biased more downwards dp = 1.5
     # removeFlags = []
     # tag = 'rev_gumixture_dp15_more_downwards'
     # dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260217170547_rev_fnpag_15_gumixture_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.5_GMVAEFalse']
@@ -232,6 +232,88 @@ def main():
     # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
     # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
     # norm = 141984969.09570745  # use same norm as primary training data
+
+    # # Revision GU Mixture, dp = 1.6
+    # removeFlags = []
+    # tag = 'rev_gumixture_dp16'
+    # dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260225170452_rev_fnpag_16_gumixture_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.6_GMVAEFalse_LHSTrue']
+    # tFind = 1501
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    # norm = 141984969.09570745  # use same norm as primary training data
+
+    # # Revision GU Mixture, dp = 1.7
+    # removeFlags = []
+    # tag = 'rev_gumixture_dp17'
+    # dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260225182712_rev_fnpag_17_gumixture_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.7_GMVAEFalse_LHSTrue']
+    # tFind = 1501
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    # norm = 141984969.09570745  # use same norm as primary training data
+
+    # # Revision GU Mixture, dp = 1.8
+    # removeFlags = []
+    # tag = 'rev_gumixture_dp18'
+    # dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260225194752_rev_fnpag_18_gumixture_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.8_GMVAEFalse_LHSTrue']
+    # tFind = 1501
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    # norm = 141984969.09570745  # use same norm as primary training data
+
+    # # Revision GU Mixture, dp = 1.9
+    # removeFlags = []
+    # tag = 'rev_gumixture_dp19'
+    # dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260225210923_rev_fnpag_19_gumixture_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.9_GMVAEFalse_LHSTrue']
+    # tFind = 1501
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    # norm = 141984969.09570745  # use same norm as primary training data
+
+    # # # Revision GU Mixture, dp = 2
+    # removeFlags = []
+    # tag = 'rev_gumixture_dp2'
+    # dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260225223032_rev_fnpag_2_gumixture_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP2_GMVAEFalse_LHSTrue']
+    # tFind = 1501
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    # norm = 141984969.09570745  # use same norm as primary training data
+
+    # # # Revision Students T, dof 3, dp = 1.5
+    # removeFlags = []
+    # tag = 'rev_studentst3_dp15'
+    # dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260227085244_rev_fnpag_15_studentst3_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.5_GMVAEFalse_LHSFalse']
+    # tFind = 1501
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    # norm = 141984969.09570745  # use same norm as primary training data
+
+    # # Revision Students T, dof 4, dp = 1.5
+    # removeFlags = []
+    # tag = 'rev_studentst4_dp15'
+    # dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260227101815_rev_fnpag_175_studentst_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.75_GMVAEFalse_LHSFalse']
+    # tFind = 1501
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    # norm = 141984969.09570745  # use same norm as primary training data
+
+    # # Revision Students T, dof 5, dp = 1.5
+    # removeFlags = []
+    # tag = 'rev_studentst5_dp15'
+    # dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260227112306_rev_fnpag_15_studentst5_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.5_GMVAEFalse_LHSFalse']
+    # tFind = 1501
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    # norm = 141984969.09570745  # use same norm as primary training data
+
+    # Revision GU Mixture biased more downwards dp = 1.5 HIGH FIDELITY - more samples and LHS
+    removeFlags = []
+    tag = 'rev_gumixture_dp15_more_downwards_HI_FI'
+    dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260228091421_rev_fnpag_15_gumixture_hi_fi_GMVAE_training_R64_C2500_Puranus_O1_Fenergy_FFTrue_DP1.5_GMVAEFalse_LHSTrue']
+    tFind = 1501
+    cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    norm = 142371486.6716325
+    # norm = 1
 
     flagDownsample = True
     flagEnergy = True  # if true, use energy, if false, use velocity
@@ -383,8 +465,8 @@ def main():
     save_path = f'{savePath}/{tag}_{Nruns}_data_{suffix}.mat'
     savemat(save_path, {'data': data_mat})
 
-    # n_train, n_test, n_val = 1024, 128, 128
-    n_train, n_test, n_val = 800, 100, 100
+    n_train, n_test, n_val = 1024, 128, 128
+    # n_train, n_test, n_val = 800, 100, 100
     n_total = n_train + n_test + n_val
     if distributeFailureFlag:
         # Get 1024 training, 128 validation, and 128 test sample indices including ALL crashes and escapes proportionally distributed between the three sets and filling the rest with the captures
@@ -439,6 +521,14 @@ def main():
 
     # Results
     print(f"Train: {len(train_indices)}, Val: {len(val_indices)}, Test: {len(test_indices)}")
+    # Print number of crashes, captures, and escapes in the training, validation, and testing data
+    for indices in [train_indices, val_indices, test_indices]:
+        subset_labels = labels[indices]
+        n_captures = np.sum(subset_labels == 0)
+        n_escapes = np.sum(subset_labels == 1)
+        n_crashes = np.sum(subset_labels == 2)
+        print(f"Captures: {n_captures}, Escapes: {n_escapes}, Crashes: {n_crashes}")
+
 
     # Put the train, val, and test indices into a single sequential list and save it as a json
     all_inds = np.concatenate([train_indices, val_indices, test_indices])

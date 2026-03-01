@@ -85,9 +85,17 @@ def main():
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gaussian_dp17_1000_data_energy_scaled_downsampled_.json"  # Energy, gaussian, DP = 1.7
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gaussian_dp18_1000_data_energy_scaled_downsampled_.json"  # Energy, gaussian, DP = 1.8
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gaussian_dp19_1000_data_energy_scaled_downsampled_.json"  # Energy, gaussian, DP = 1.9
-    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gaussian_dp2_1000_data_energy_scaled_downsampled_.json"  # Energy, gaussian, DP = 2
+    inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gaussian_dp2_1000_data_energy_scaled_downsampled_.json"  # Energy, gaussian, DP = 2
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_studentsT_dp175_1000_data_energy_scaled_downsampled_.json"  # dp = 1.75 students T, DOF = 4
-    inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_studentsT_dp15_1000_data_energy_scaled_downsampled_.json"  # dp = 1.5 students T, DOF = 4
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_studentsT_dp15_1000_data_energy_scaled_downsampled_.json"  # dp = 1.5 students T, DOF = 4
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gumixture_dp16_1000_data_energy_scaled_downsampled_.json"  # dp = 1.6 same GU mixture as training
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gumixture_dp17_1000_data_energy_scaled_downsampled_.json"  # dp = 1.7 same GU mixture as training
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gumixture_dp18_1000_data_energy_scaled_downsampled_.json"  # dp = 1.8 same GU mixture as training
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gumixture_dp19_1000_data_energy_scaled_downsampled_.json"  # dp = 1.9 same GU mixture as training
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gumixture_dp2_1000_data_energy_scaled_downsampled_.json"  # dp = 2 same GU mixture as training
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_studentst3_dp15_1000_data_energy_scaled_downsampled_.json"  # dp = 1.5, Student's T dof = 3
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_studentst4_dp15_1000_data_energy_scaled_downsampled_.json"  # dp = 1.5, Student's T dof = 4
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_studentst5_dp15_1000_data_energy_scaled_downsampled_.json"  # dp = 1.5, Student's T dof = 5
 
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250514_182106_5_5'  # Combined data
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250512_200948_5_5'  # Uniform data
@@ -101,7 +109,7 @@ def main():
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_near_crash_new_20250601_065902_L5_C5_retrained'  # near crash retrained
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_near_escape_new_20250601_073224_L7_C3_retrained'  # near escape retrained
 
-    saveTag = 'rev_gumixture_energy_biased_down_eval_studentst_15'  # tag to add to saved files
+    saveTag = 'rev_gumixture_energy_biased_down_eval_gaussian_dp2'  # tag to add to saved files
     saveLoopFigs = False  # Whether to save the figures within the loop
 
     LDs = [3,4,5,6,7,8,9]  #[4,5,6]
@@ -582,6 +590,11 @@ def main():
             cmap="managua",
             percent=True
         )
+
+        # Save off the average misassignment, weighted misassignment, and failure-weighted misassignment to npy files
+        np.save(os.path.join(figPath, f"avg_false_{saveTag}_{hds[0]}.npy"), avg_false)
+        np.save(os.path.join(figPath, f"weighted_false_{saveTag}_{hds[0]}.npy"), weighted_false)
+        np.save(os.path.join(figPath, f"failure_weighted_{saveTag}_{hds[0]}.npy"), failure_weighted)
 
         # print out the mean of the avergage, weighted average, and failure average over all LDs and NCs
         print(f"Mean Average Misassignment: {np.nanmean(avg_false)*100:.4f}%")

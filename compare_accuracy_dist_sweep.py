@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import sys
+import glob
 sys.path.append("/Users/gracecalkins/Local_Documents/local_code/pipag/pipag_base")
 from plotting import seabornSettings  # type: ignore
 
@@ -21,9 +22,12 @@ NCs = [3,4,5,6,7,8,9]
 # Pairs to extract
 pairs = [(5,5), (6,6)]
 
-# dp values
-dp_values = [1.5,1.6,1.7,1.8,1.9,2]
-dp_strings = [str(dp).replace(".", "") for dp in dp_values]
+datasets = ["gmvae_comparison_rev_gumixture_energy_biased_down_eval_gumixture_dp15_36",
+            "gmvae_comparison_rev_gumixture_energy_biased_down_eval_gaussian_dp15_36",
+            "gmvae_comparison_rev_gumixture_energy_biased_down_eval_studentst5_dp15_36",
+            "gmvae_comparison_rev_gumixture_energy_biased_down_eval_studentst4_dp15_36",
+            "gmvae_comparison_rev_gumixture_energy_biased_down_eval_studentst3_dp15_36",]
+tags = ["GU Mixture", "Gaussian", "Student's t (df=5)", "Student's t (df=4)", "Student's t (df=3)"]
 
 # ----------------------------------------
 # Storage dictionaries
@@ -48,41 +52,43 @@ global_min = {
     "weighted_false": [],
     "failure_only_false": []
 }
-for dp_str in dp_strings:
+for dataset in datasets:
+    folder_path = os.path.join(base_path, dataset)
 
-    # folder_name = f"gmvae_comparison_rev_gumixture_energy_biased_down_eval_gaussian_dp{dp_str}_36"
-    prefix = "rev_gumixture_energy_biased_down_eval_gumixture"
-    folder_name = f"gmvae_comparison_{prefix}_dp{dp_str}_36"
-    folder_path = os.path.join(base_path, folder_name)
+    dp = "15"
 
-    capture_file = os.path.join(
-        folder_path,
-        f"false_capture_percent_{prefix}_dp{dp_str}_36.npy"
-    )
+    # Use a wildcard to match any prefix
+    capture_pattern = os.path.join(folder_path, f"false_capture_percent_*_dp{dp}_36.npy")
+    escape_pattern = os.path.join(folder_path, f"false_escape_percent_*_dp{dp}_36.npy")
+    crash_pattern = os.path.join(folder_path, f"false_crash_percent_*_dp{dp}_36.npy")
+    weighted_pattern = os.path.join(folder_path, f"weighted_false_*_dp{dp}_36.npy")
+    failure_pattern = os.path.join(folder_path, f"failure_weighted_*_dp{dp}_36.npy")
 
-    escape_file = os.path.join(
-        folder_path,
-        f"false_escape_percent_{prefix}_dp{dp_str}_36.npy"
-    )
+    # Grab the first matching file for each
+    capture_files = glob.glob(capture_pattern)
+    escape_files = glob.glob(escape_pattern)
+    crash_files = glob.glob(crash_pattern)
+    weighted_files = glob.glob(weighted_pattern)
+    failure_files = glob.glob(failure_pattern)
 
-    crash_file = os.path.join(
-        folder_path,
-        f"false_crash_percent_{prefix}_dp{dp_str}_36.npy"
-    )
+    if not capture_files:
+        print("No capture files found!")
+    else:
+        capture_file = capture_files[0]
+        escape_file = escape_files[0]
+        crash_file = crash_files[0]
+        weighted_file = weighted_files[0]
+        failure_only_file = failure_files[0]
 
-    weighted_file = os.path.join(
-        folder_path,
-        f"weighted_false_{prefix}_dp{dp_str}_36.npy"
-    )
+        # Load the arrays
+        capture_array = np.load(capture_file)
+        escape_array = np.load(escape_file)
+        crash_array = np.load(crash_file)
+        weighted_array = np.load(weighted_file)
+        failure_array = np.load(failure_only_file)
 
-    failure_only_file = os.path.join(
-        folder_path,
-        f"failure_weighted_{prefix}_dp{dp_str}_36.npy"
-    )
-
-    if not os.path.exists(capture_file):
-        print(f"Missing files for dp={dp_str}")
-        continue
+        print("Files loaded successfully:")
+        print(capture_file, escape_file, crash_file)
 
     capture_arr = np.load(capture_file)
     escape_arr  = np.load(escape_file)
@@ -108,13 +114,25 @@ for dp_str in dp_strings:
         ("weighted_false", weighted_arr),
         ("failure_only_false", failure_only_arr),
     ]:
-        min_index = np.nanargmin(arr)
-        ld_idx, nc_idx = np.unravel_index(min_index, arr.shape)
+        if np.all(np.isnan(arr)):
+            print("Array contains only NaNs, skipping min computation")
+            min_index = None
+            val = np.nan
+            LD = 0
+            NC = 0
+        else:
+            min_index = np.nanargmin(arr)
+            print("Minimum at index:", min_index)
+
+            ld_idx, nc_idx = np.unravel_index(min_index, arr.shape)
+            val = arr[ld_idx, nc_idx] if min_index is not None else np.nan
+            LD = LDs[ld_idx] if min_index is not None else None
+            NC = NCs[nc_idx] if min_index is not None else None
 
         global_min[metric_name].append({
-            "value": arr[ld_idx, nc_idx],
-            "LD": LDs[ld_idx],
-            "NC": NCs[nc_idx]
+            "value": val,
+            "LD": LD,
+            "NC": NC
         })
 
 
@@ -130,9 +148,12 @@ for metric in ["capture", "escape", "crash", "weighted_false", "failure_only_fal
         percent_values = 100 * np.array(results[metric][pair])
 
         # Plot curve
-        plt.plot(dp_values, percent_values,
+        plt.plot( percent_values,
                  marker="o",
                  label=f"LD={pair[0]}, NC={pair[1]}")
+
+        # Make x ticks labeled with tags
+        plt.xticks(range(len(percent_values)), tags)
 
         # Baseline (dp = 1.5 is first entry)
         baseline = percent_values[0]
@@ -141,17 +162,16 @@ for metric in ["capture", "escape", "crash", "weighted_false", "failure_only_fal
         plt.axhline(
             y=baseline,
             linestyle="--",
-            linewidth=1.5,
             alpha=0.7,
             color="C0" if pair == (5,5) else "C1",
-            label=f"Baseline (dp=1.5) for LD={pair[0]}, NC={pair[1]}"
+            label=f"Baseline GU Mixture for LD={pair[0]}, NC={pair[1]}"
         )
 
     # 🔴 Scatter global minimum across all LDs and NCs
     # Extract min values in percent
     min_percent = [100 * entry["value"] for entry in global_min[metric]]
 
-    plt.scatter(dp_values,
+    plt.scatter(range(len(min_percent)),
                 min_percent,
                 marker="*",
                 s=180,
@@ -160,7 +180,7 @@ for metric in ["capture", "escape", "crash", "weighted_false", "failure_only_fal
                 color="C5")
 
     # Add text annotations above stars
-    for i, dp in enumerate(dp_values):
+    for i, dp in enumerate(range(len(min_percent))):
         entry = global_min[metric][i]
         label_text = f"({entry['LD']},{entry['NC']})"
 
@@ -174,9 +194,9 @@ for metric in ["capture", "escape", "crash", "weighted_false", "failure_only_fal
 
     plt.xlabel("dp")
     plt.ylabel("False Assignment Rate")
-    plt.title(f"{metric.capitalize()} Misassignment vs dp")
+    plt.title(f"{metric.capitalize()} Misassignment vs Dist")
     plt.legend()
     plt.tight_layout()
-    plt.savefig(os.path.join(base_path, f"{metric}_misassignment_vs_dp.png"), dpi=300)
+    plt.savefig(os.path.join(base_path, f"{metric}_misassignment_vs_dist.png"), dpi=300)
 
 plt.show()
