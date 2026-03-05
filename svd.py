@@ -14,10 +14,11 @@ def main():
     # Load in sample dataset
     dataPath = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data'
     savePath = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/figs/SVD'
-    fileNames = ['UOP_inc_lit_disps_5000_data_energy_scaled_downsampled_.json',
-                 'UOP_near_crash_5000_data_energy_scaled_downsampled_.json',
-                 'UOP_near_crash_steeper_5000_data_energy_scaled_downsampled_.json']
-    tags = ['Near Escape', 'Near Crash', 'Aggressive Near Crash']
+    # fileNames = ['UOP_inc_lit_disps_5000_data_energy_scaled_downsampled_.json',
+    #              'UOP_near_crash_5000_data_energy_scaled_downsampled_.json',
+    #              'UOP_near_crash_steeper_5000_data_energy_scaled_downsampled_.json']
+    fileNames = ['rev_gumixture_dp15_more_downwards_HI_FI_2500_data_energy_scaled_downsampled_.json']
+    tags = ["GU Mixture"]
     
     all_samples = []
     # Load in all jsons
@@ -39,6 +40,8 @@ def main():
         Ss.append(S)
         plt.plot(S, marker='o')
     plt.yscale('log')
+    plt.axvline(x=2, color='r', linestyle='--')
+    plt.axvline(x=8, color='r', linestyle='--')
     plt.title("Singular Values")
     plt.legend(tags)
     plt.xlabel("Index")

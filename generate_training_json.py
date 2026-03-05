@@ -7,7 +7,70 @@ import seaborn as sns
 
 from scipy.interpolate import PchipInterpolator
 
+def semi_major_axis(r, v, mu):
+    a = mu/(2*mu/r - v**2)
+    return a
 
+def apoapsis_radius(r, v, gamma, mu):
+    a = semi_major_axis(r, v, mu)
+    ra = a*(1 + np.sqrt(1 - v**2*r**2*np.cos(gamma)**2/(mu*a) ))
+    return ra
+
+def periapsis_radius(r, v, gamma, mu):
+    a = semi_major_axis(r, v, mu)
+    ra = a*(1 - np.sqrt(1 - v**2*r**2*np.cos(gamma)**2/(mu*a) ))
+    return ra
+
+def getLabelInterp(data, mu, R_eq, run):
+    # 3/4 Redo label assignment based on new thresholds and interpolation
+    rs = data['x'][0, :]
+    V = data['x'][3, :]
+    gamma = data['x'][4, :]
+
+    r_exit = R_eq + 1000e3  # altitude where we defined atmospheric exit
+
+    r_a = np.nan
+    r_p = np.nan
+    # Difference from exit radius
+    dr = rs - r_exit
+
+    # Find sign changes
+    sign_change = np.where(np.diff(np.sign(dr)) != 0)[0]
+
+    crossings = []
+    for idx in sign_change:
+        if rs[idx + 1] > rs[idx]:  # outbound crossing
+            crossings.append(idx)
+
+    if len(crossings) > 0:
+        idx = crossings[0]  # first outbound crossing
+        r1, r2 = rs[idx], rs[idx + 1]
+        V1, V2 = V[idx], V[idx + 1]
+        g1, g2 = gamma[idx], gamma[idx + 1]
+
+        for idx in sign_change:
+            if rs[idx + 1] > rs[idx]:  # outbound crossing
+                r1, r2 = rs[idx], rs[idx + 1]
+                alpha = (r_exit - r1) / (r2 - r1)
+
+                V_exit = V[idx] + alpha * (V[idx + 1] - V[idx])
+                gamma_exit = gamma[idx] + alpha * (gamma[idx + 1] - gamma[idx])
+                r_a = apoapsis_radius(r_exit, V_exit, gamma_exit, mu)
+                r_p = periapsis_radius(r_exit, V_exit, gamma_exit, mu)
+                e_exit = V_exit ** 2 / 2 - mu / r_exit
+                break
+
+    rdot_f = rs[-1] - rs[-2]  # /1 because one second time step
+    if r_a < 0:
+        label = 1
+    elif np.isnan(r_a) or (r_p - R_eq) < 100e3 or rdot_f < 0:  # or (results[ii]['ra'] - scenario.planet.Re) < 10_000e3:
+        label = 2
+    elif r_a > 0:
+        label = 0
+    else:
+        print(f'Error: no label assigned to {run}')
+
+    return label
 
 # Step 2: Determine proportional splits for escape and crash
 def split_proportional(indices, proportions):
@@ -28,8 +91,8 @@ def main():
     # Constants
     savePath = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data'
     R_eq = 25559e3 # m, Uranus
-    mu = 5.7940*10**15,  # m^3/s^2
-    Nruns = 2500
+    mu = 5.7940*10**15  # m^3/s^2
+    Nruns = 1000
 
     # Near Escape
     # removeFlags = [2]  # 0 capture, 1 escape, 2 crash
@@ -175,13 +238,13 @@ def main():
     # # norm = 1
 
     # Revision GU Mixture biased more downwards dp = 1.5
-    # removeFlags = []
-    # tag = 'rev_gumixture_dp15_more_downwards'
-    # dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260217170547_rev_fnpag_15_gumixture_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.5_GMVAEFalse']
-    # tFind = 1501
-    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
-    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
-    # norm = 141984969.09570745
+    removeFlags = []
+    tag = 'rev_gumixture_dp15_more_downwards'
+    dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260217170547_rev_fnpag_15_gumixture_R42_C1000_Puranus_O1_Fenergy_FFTrue_DP1.5_GMVAEFalse']
+    tFind = 1501
+    cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    norm = 141984969.09570745
     # norm = 1
 
     # Revision Gaussian, dp = 1.5
@@ -306,13 +369,13 @@ def main():
     # norm = 141984969.09570745  # use same norm as primary training data
 
     # Revision GU Mixture biased more downwards dp = 1.5 HIGH FIDELITY - more samples and LHS
-    removeFlags = []
-    tag = 'rev_gumixture_dp15_more_downwards_HI_FI'
-    dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260228091421_rev_fnpag_15_gumixture_hi_fi_GMVAE_training_R64_C2500_Puranus_O1_Fenergy_FFTrue_DP1.5_GMVAEFalse_LHSTrue']
-    tFind = 1501
-    cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
-    distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
-    norm = 142371486.6716325
+    # removeFlags = []
+    # tag = 'rev_gumixture_dp15_more_downwards_HI_FI'
+    # dataPaths = ['/Users/gracecalkins/Local_Documents/local_code/pipag/data/20260228091421_rev_fnpag_15_gumixture_hi_fi_GMVAE_training_R64_C2500_Puranus_O1_Fenergy_FFTrue_DP1.5_GMVAEFalse_LHSTrue']
+    # tFind = 1501
+    # cutoffFlag = False  # if true, cut off the data based on the final time step, if false pad the data
+    # distributeFailureFlag = True  # if true, distribute the failures evenly across the runs, if false, randomly distribute cases
+    # norm = 142371486.6716325
     # norm = 1
 
     flagDownsample = True
@@ -378,6 +441,7 @@ def main():
 
             # Invert CDF to get indices
             idx = np.searchsorted(cdf, u)
+            print(idx)
     elif flagDownsample and flagAltitude:
         idx = np.arange(downsampleNum)
     else:
@@ -406,14 +470,7 @@ def main():
             r = data['x'][0, :]
             fpa = data['x'][4, :]
 
-        rp = data['rp']
-
-        if ras[run] < 0: # Escape
-            label = 1
-        elif np.isnan(ras[run]) or (rp - R_eq) < 100e3:
-            label = 2
-        else: # Capture
-            label = 0
+        label = getLabelInterp(data, mu, R_eq, run)
 
         if label in removeFlags:  # Remove from dataset
             continue

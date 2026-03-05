@@ -5,6 +5,7 @@ import os
 import sys
 import seaborn as sns
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 sys.path.append("/Users/gracecalkins/Local_Documents/local_code/pipag/pipag_base")
 import torch
 from gmvae_encoder import *  # type: ignore
@@ -79,13 +80,13 @@ def main():
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gaussian_dp2_1000_data_velocity_fpa_scaled_downsampled_.json"  # Gaussian dp = 2
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_studentsT_dp15_1000_data_velocity_fpa_scaled_downsampled_.json"  # students T, dp = 1.75, DOF = 4
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gumixture_1000_data_energy_scaled_downsampled_.json"  # ENERGY, gu mixture training data dp = 1.5
-    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gumixture_dp15_more_downwards_1000_data_energy_scaled_downsampled_.json"  # Energy, gu mixture, dp = 1.5, FPA biased downwards to get more crashes
+    inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gumixture_dp15_more_downwards_1000_data_energy_scaled_downsampled_.json"  # Energy, gu mixture, dp = 1.5, FPA biased downwards to get more crashes
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gaussian_dp15_1000_data_energy_scaled_downsampled_.json"  # Energy, gaussian, DP = 1.5
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gaussian_dp16_1000_data_energy_scaled_downsampled_.json"  # Energy, gaussian, DP = 1.6
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gaussian_dp17_1000_data_energy_scaled_downsampled_.json"  # Energy, gaussian, DP = 1.7
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gaussian_dp18_1000_data_energy_scaled_downsampled_.json"  # Energy, gaussian, DP = 1.8
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gaussian_dp19_1000_data_energy_scaled_downsampled_.json"  # Energy, gaussian, DP = 1.9
-    inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gaussian_dp2_1000_data_energy_scaled_downsampled_.json"  # Energy, gaussian, DP = 2
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gaussian_dp2_1000_data_energy_scaled_downsampled_.json"  # Energy, gaussian, DP = 2
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_studentsT_dp175_1000_data_energy_scaled_downsampled_.json"  # dp = 1.75 students T, DOF = 4
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_studentsT_dp15_1000_data_energy_scaled_downsampled_.json"  # dp = 1.5 students T, DOF = 4
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gumixture_dp16_1000_data_energy_scaled_downsampled_.json"  # dp = 1.6 same GU mixture as training
@@ -96,6 +97,7 @@ def main():
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_studentst3_dp15_1000_data_energy_scaled_downsampled_.json"  # dp = 1.5, Student's T dof = 3
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_studentst4_dp15_1000_data_energy_scaled_downsampled_.json"  # dp = 1.5, Student's T dof = 4
     # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_studentst5_dp15_1000_data_energy_scaled_downsampled_.json"  # dp = 1.5, Student's T dof = 5
+    # inputDataPath = "/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/rev_gumixture_dp15_more_downwards_HI_FI_2500_data_energy_scaled_downsampled_.json"  # 2500 sample GU Mixture biased down dp 1.5 for high-fidelity training
 
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250514_182106_5_5'  # Combined data
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250512_200948_5_5'  # Uniform data
@@ -108,12 +110,15 @@ def main():
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_em_aerocapture_energy_20250429_183447_5_5'  # Escape
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_near_crash_new_20250601_065902_L5_C5_retrained'  # near crash retrained
     # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_near_escape_new_20250601_073224_L7_C3_retrained'  # near escape retrained
+    # folder_path = '/Users/gracecalkins/Local_Documents/local_code/pipag_training/data/gmvae_rev_gu_mixture_energy_biased_down_20260224_191515_L5_C5_36_24_12'
 
-    saveTag = 'rev_gumixture_energy_biased_down_eval_gaussian_dp2'  # tag to add to saved files
-    saveLoopFigs = False  # Whether to save the figures within the loop
+    saveTag = 'rev_gumixture_energy_biased_down_eval'  # tag to add to saved files
+    saveLoopFigs = True  # Whether to save the figures within the loop
 
     LDs = [3,4,5,6,7,8,9]  #[4,5,6]
     NCs = [3,4,5,6,7,8,9]  #[2,3,4,5,6]
+    # LDs = [5,6]  #[4,5,6]
+    # NCs = [5,6]  #[2,3,4,5,6]
     # hds = [30,20,10]
     # hds = [24,18,12]
     hds = [36,24,12]
@@ -177,6 +182,7 @@ def main():
                 # pattern = rf"^gmvae_rev_gu_mixture_(20260216|20260217)_\d{{6}}_L{LD}_C{NC}$"
                 # pattern = rf"^gmvae_rev_gu_mixture_(20260216|20260217)_\d{{6}}_L{LD}_C{NC}_24_18_12$"
                 pattern = rf"^gmvae_rev_gu_mixture_energy_biased_down_\d{{8}}_\d{{6}}_L{LD}_C{NC}_{hds[0]}_{hds[1]}_{hds[2]}$"
+                # pattern = rf"^gmvae_rev_gu_mixture_energy_biased_down_HI_FI_\d{{8}}_\d{{6}}_L{LD}_C{NC}_{hds[0]}_{hds[1]}_{hds[2]}$"
                 folder_path = [
                     f for f in os.listdir(basePath)
                     if os.path.isdir(os.path.join(basePath, f)) and re.fullmatch(pattern, f)
@@ -260,11 +266,24 @@ def main():
 
             # pass all samples through the encoder and perform em step to see which cluster they are assigned to
             pred_labels = []
+            all_probs = []  # list of capture, escape, crash prob for each sample
             for ii in range(Nsamples):
                 sample = torch.tensor(samples[ii][:,np.newaxis].T).float()
                 z, logsigmasq = encoder.forward(sample)
                 gamma_c, _, _ = em_step(z, z, logsigmasq, params, em_reg)  # type: ignore
                 cluster_ind = np.argmax(gamma_c.detach().numpy())
+                # Get the capture, impact, and escape probabilities
+                cluster_probs = gamma_c.detach().numpy()
+                spec_capture_prob, spec_escape_prob, spec_crash_prob = 0, 0, 0
+                for jj, cluster_prob in enumerate(np.squeeze(cluster_probs)):
+                    if assigned_cluster_inds[jj] == 0:
+                        spec_capture_prob += cluster_prob
+                    elif assigned_cluster_inds[jj] == 1:
+                        spec_escape_prob += cluster_prob
+                    else:
+                        spec_crash_prob += cluster_prob
+                all_probs.append([spec_capture_prob, spec_escape_prob, spec_crash_prob])
+
                 pred_labels.append(assigned_cluster_inds[cluster_ind])
             pred_labels = np.array(pred_labels)
 
@@ -377,6 +396,53 @@ def main():
                 plt.suptitle(f"LD: {LD}, NC: {NC}")
                 plt.tight_layout()
                 plt.savefig(os.path.join(folder_path, f"breakout_predicted_clusters_{saveTag}_LD{LD}_NC{NC}.png"), dpi=300)
+                # plt.show()
+
+                fig, axs = plt.subplots(1, 3, figsize=(12, 4), sharey=True)
+                # Colormap and normalization (shared across all axes)
+                cmap = sns.color_palette("flare_r", as_cmap=True)
+                norm = mpl.colors.LogNorm(vmin=1e-6, vmax=1.0)
+
+                for ii in range(Nsamples):
+                    true_label = labels[ii]  # 0,1,2
+                    prob_true = max(all_probs[ii][true_label], 1e-6) # probability of true class
+
+                    color = cmap(norm(prob_true))
+
+                    axs[true_label].plot(samples[ii], color=color, alpha=0.3)
+
+                # Formatting
+                titles = ['Capture (True)', 'Escape (True)', 'Impact (True)']
+                for k, ax in enumerate(axs):
+                    ax.set_title(titles[k])
+                    ax.set_xlabel('X Input')
+                    ax.axhline(0, color='black', linestyle='--')
+
+                axs[0].set_ylabel('Y Input')
+
+                # Shared colorbar
+                sm = mpl.cm.ScalarMappable(cmap=cmap, norm=norm)
+                sm.set_array([])  # required for colorbar
+
+                plt.suptitle(f"LD: {LD}, NC: {NC}")
+                plt.tight_layout()
+                # Leave room on right side
+                plt.subplots_adjust(right=0.88)
+
+                # Add custom axis for colorbar
+                cax = fig.add_axes([0.90, 0.15, 0.02, 0.7])
+                # [left, bottom, width, height] in figure coordinates
+
+                cbar = fig.colorbar(sm, cax=cax)
+                cbar.set_label('Assigned Probability of True Label')
+
+                plt.savefig(
+                    os.path.join(
+                        folder_path,
+                        f"breakout_true_label_probability_{saveTag}_LD{LD}_NC{NC}.png"
+                    ),
+                    dpi=300
+                )
                 # plt.show()
 
     if len(LDs) == 1 or len(NCs) == 1:
@@ -587,7 +653,7 @@ def main():
             NCs,
             f"{hds[0]}x{hds[1]}x{hds[2]}: Failure Misassignment (%)",
             save_path=os.path.join(figPath, f"heatmap_failure_only_{saveTag}_{hds[0]}.png"),
-            cmap="managua",
+            cmap="summer",
             percent=True
         )
 
@@ -597,9 +663,9 @@ def main():
         np.save(os.path.join(figPath, f"failure_weighted_{saveTag}_{hds[0]}.npy"), failure_weighted)
 
         # print out the mean of the avergage, weighted average, and failure average over all LDs and NCs
-        print(f"Mean Average Misassignment: {np.nanmean(avg_false)*100:.4f}%")
-        print(f"Mean Weighted Misassignment: {np.nanmean(weighted_false)*100:.4f}%")
-        print(f"Mean Failure-Weighted Misassignment: {np.nanmean(failure_weighted)*100:.4f}%")
+        print(f"Mean/Min/Max Average Misassignment: {np.nanmean(avg_false)*100:.4f}%, {np.nanmin(avg_false)*100:.4f}%, {np.nanmax(avg_false)*100:.4f}%")
+        print(f"Mean/Min/Max Weighted Misassignment: {np.nanmean(weighted_false)*100:.4f}%, {np.nanmin(weighted_false)*100:.4f}%, {np.nanmax(weighted_false)*100:.4f}%")
+        print(f"Mean/Min/Max Failure-Weighted Misassignment: {np.nanmean(failure_weighted)*100:.4f}%, {np.nanmin(failure_weighted)*100:.4f}%, {np.nanmax(failure_weighted)*100:.4f}%")
 
 
 if __name__ == "__main__":
